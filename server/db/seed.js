@@ -1,9 +1,13 @@
 // Creates the tables (if missing) and fills them with fake demo data.
 // Run with:  npm run db:seed
-// Safe to run again: demo users are updated, and courses/assignments are RESET to this starting data.
-import { readFile } from 'node:fs/promises';
+// Safe to run again: demo users are updated, and courses, assignments, submissions
+// and uploaded files are RESET to this starting data.
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import path from 'node:path';
 import bcrypt from 'bcryptjs';
 import { pool } from '../src/db.js';
+import { UPLOAD_DIR } from '../src/uploads.js';
 
 // Fake demo accounts only. These passwords are hashed before they are saved.
 const demoUsers = [
@@ -22,8 +26,30 @@ const demoCourses = [
     instructor: 'instructor@demo.test',
     studentEnrolled: true,
     assignments: [
-      { title: 'Hello, World', description: 'Write and run your first program.', dueInDays: -3, points: 10 },
-      { title: 'Loops Practice', description: 'Print the numbers 1 to 100 using a loop.', dueInDays: 4, points: 20 },
+      {
+        title: 'Hello, World',
+        description: 'Write and run your first program.',
+        dueInDays: -3,
+        points: 10,
+        // Example: already submitted by the demo student AND graded
+        submission: {
+          fileName: 'hello-world.txt',
+          content: 'console.log("Hello, World!");\n',
+          score: 9,
+          feedback: 'Nice work! Add a comment at the top explaining what the program does.',
+        },
+      },
+      {
+        title: 'Loops Practice',
+        description: 'Print the numbers 1 to 100 using a loop.',
+        dueInDays: 4,
+        points: 20,
+        // Example: submitted, waiting for the instructor to grade it
+        submission: {
+          fileName: 'loops.txt',
+          content: 'for (let i = 1; i <= 100; i++) {\n  console.log(i);\n}\n',
+        },
+      },
       { title: 'Functions Quiz', description: 'Short quiz on writing and calling functions.', dueInDays: 11, points: 30 },
     ],
   },
@@ -84,8 +110,11 @@ for (const user of demoUsers) {
 }
 
 // --- Courses, enrollments, assignments ---
-// Start fresh: CASCADE also empties enrollments and assignments that point at courses.
+// Start fresh: CASCADE also empties enrollments, assignments and submissions.
 await pool.query('TRUNCATE courses RESTART IDENTITY CASCADE');
+// The submission rows are gone, so remove their files too (only inside server/uploads/).
+await rm(UPLOAD_DIR, { recursive: true, force: true });
+await mkdir(UPLOAD_DIR, { recursive: true });
 
 for (const course of demoCourses) {
   const result = await pool.query(
@@ -102,11 +131,32 @@ for (const course of demoCourses) {
   }
 
   for (const a of course.assignments) {
-    await pool.query(
+    const assignmentResult = await pool.query(
       `INSERT INTO assignments (course_id, title, description, due_at, points)
-       VALUES ($1, $2, $3, now() + make_interval(days => $4), $5)`,
+       VALUES ($1, $2, $3, now() + make_interval(days => $4), $5)
+       RETURNING id`,
       [courseId, a.title, a.description, a.dueInDays, a.points]
     );
+
+    if (a.submission) {
+      // Write the example file to disk under a random name, like a real upload.
+      const storedName = randomUUID();
+      await writeFile(path.join(UPLOAD_DIR, storedName), a.submission.content);
+      await pool.query(
+        `INSERT INTO submissions
+           (assignment_id, student_id, file_name, stored_name, file_type, file_size, score, feedback, graded_at)
+         VALUES ($1, $2, $3, $4, 'text/plain', $5, $6, $7, CASE WHEN $6::int IS NULL THEN NULL ELSE now() END)`,
+        [
+          assignmentResult.rows[0].id,
+          userIds['student@demo.test'],
+          a.submission.fileName,
+          storedName,
+          Buffer.byteLength(a.submission.content),
+          a.submission.score ?? null,
+          a.submission.feedback ?? null,
+        ]
+      );
+    }
   }
   console.log(`Seeded course: ${course.code} (${course.assignments.length} assignments)`);
 }

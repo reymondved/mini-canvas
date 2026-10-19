@@ -8,6 +8,9 @@ dist/
 .env
 *.local.sql
 
+# Uploaded student files
+server/uploads/
+
 # Logs and OS files
 *.log
 .DS_Store

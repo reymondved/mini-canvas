@@ -4,6 +4,9 @@ import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db.js';
 import authRoutes from './routes/auth.js';
 import courseRoutes from './routes/courses.js';
+import assignmentRoutes from './routes/assignments.js';
+import submissionRoutes from './routes/submissions.js';
+import gradeRoutes from './routes/grades.js';
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET is missing. Copy server/.env.example to server/.env and fill it in.');
@@ -33,6 +36,9 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/grades', gradeRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on http://localhost:${process.env.PORT}`);

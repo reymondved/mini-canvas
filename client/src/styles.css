@@ -346,3 +346,185 @@ a {
     text-align: left;
   }
 }
+
+/* ---------- Header navigation ---------- */
+.app-nav {
+  display: flex;
+  gap: 1rem;
+  margin-right: auto;
+  margin-left: 1.5rem;
+}
+
+.app-nav a {
+  color: var(--white);
+  text-decoration: none;
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.app-nav a.active {
+  border-bottom-color: var(--gold);
+}
+
+@media (max-width: 600px) {
+  .app-nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* ---------- Status tags ---------- */
+.tag-done {
+  background: #e6f4ea;
+  color: #1e6b34;
+}
+
+.tag-late {
+  background: #fff4d6;
+  color: #7a5b00;
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+/* ---------- Assignment page ---------- */
+.field textarea,
+.field input[type='number'] {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+}
+
+.field input[type='number'] {
+  max-width: 10rem;
+}
+
+.field input[type='file'] {
+  width: 100%;
+  padding: 0.5rem 0;
+  border: none;
+}
+
+.submission {
+  margin-bottom: 1rem;
+}
+
+.submission p {
+  margin: 0 0 0.35rem;
+}
+
+.grade-result {
+  background: var(--bg);
+  border-left: 4px solid var(--maroon);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.grade-result p {
+  margin: 0 0 0.35rem;
+}
+
+.grade-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--maroon);
+}
+
+.grade-form {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-light);
+}
+
+.grade-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* ---------- Grades page ---------- */
+.grades-course {
+  margin-bottom: 1.25rem;
+}
+
+.grades-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.grades-header h2 {
+  font-size: 1.15rem;
+}
+
+.grade-total {
+  font-weight: 700;
+  color: var(--maroon);
+  margin: 0;
+}
+
+/* Wide tables scroll sideways inside their card on small phones, instead of breaking the page */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.grades-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.grades-table th,
+.grades-table td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--gray-light);
+  vertical-align: top;
+}
+
+.grades-table th {
+  color: var(--gray);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.grades-table td p {
+  margin: 0.25rem 0 0;
+}
+
+/* Same column widths in every course's table */
+.grades-table {
+  table-layout: fixed;
+  min-width: 520px;
+}
+
+.grades-table th:nth-child(1) { width: 40%; }
+.grades-table th:nth-child(2) { width: 26%; }
+.grades-table th:nth-child(3) { width: 19%; }
+.grades-table th:nth-child(4) { width: 15%; }
+
+/* On phones, hide the Due column so Status and Score fit without scrolling */
+@media (max-width: 600px) {
+  .grades-table {
+    min-width: 0;
+  }
+
+  .grades-table th:nth-child(2),
+  .grades-table td:nth-child(2) {
+    display: none;
+  }
+
+  .grades-table th:nth-child(1) { width: 48%; }
+  .grades-table th:nth-child(3) { width: 30%; }
+  .grades-table th:nth-child(4) { width: 22%; }
+}

@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-
-function formatDate(isoString) {
-  return new Date(isoString).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-}
+import { useAuth } from '../auth/AuthContext.jsx';
+import { formatDate, submissionStatus } from '../format.js';
 
 export default function CoursePage() {
+  const { user } = useAuth();
   // useParams reads the ":id" part of the URL, e.g. /courses/2 → id = "2"
   const { id } = useParams();
   const [data, setData] = useState(null); // { course, assignments } once loaded
@@ -52,17 +51,19 @@ export default function CoursePage() {
       <ul className="assignment-list">
         {assignments.map((a) => {
           const pastDue = new Date(a.due_at) < now;
+          const status = submissionStatus(a);
           return (
             <li key={a.id} className="card assignment">
               <div>
-                <h3>{a.title}</h3>
+                <h3><Link to={`/assignments/${a.id}`}>{a.title}</Link></h3>
                 <p>{a.description}</p>
               </div>
               <div className="assignment-meta">
-                <span className={pastDue ? 'tag tag-past' : 'tag'}>
-                  {pastDue ? 'Past due' : 'Due'} {formatDate(a.due_at)}
+                <span className="muted">{pastDue ? 'Was due' : 'Due'} {formatDate(a.due_at)}</span>
+                {user.role === 'student' && <span className={status.className}>{status.label}</span>}
+                <span className="muted">
+                  {a.score !== null ? `${a.score} / ${a.points}` : a.points} pts
                 </span>
-                <span className="muted">{a.points} pts</span>
               </div>
             </li>
           );

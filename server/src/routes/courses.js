@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
 import { requireLogin } from '../middleware/requireLogin.js';
+import { findAccessibleCourse, isValidId } from '../access.js';
 
 const router = Router();
 
@@ -38,33 +39,22 @@ router.get('/mine', requireLogin, async (req, res) => {
 // GET /api/courses/:id — one course and its assignments,
 // but ONLY if you teach it or are enrolled in it (this is "authorization").
 router.get('/:id', requireLogin, async (req, res) => {
-  // Course ids are whole numbers; anything else can't be a real course.
-  if (!/^\d{1,9}$/.test(req.params.id)) {
-    return res.status(404).json({ error: 'Course not found.' });
-  }
-
-  const courseResult = await pool.query(
-    `SELECT c.id, c.code, c.title, c.description, u.name AS instructor_name
-     FROM courses c
-     JOIN users u ON u.id = c.instructor_id
-     WHERE c.id = $1
-       AND (c.instructor_id = $2
-            OR EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = $2))`,
-    [req.params.id, req.user.id]
-  );
-  const course = courseResult.rows[0];
+  const course = isValidId(req.params.id) && (await findAccessibleCourse(req.params.id, req.user.id));
 
   // Same answer for "doesn't exist" and "not yours", so nobody can probe which courses exist.
   if (!course) {
     return res.status(404).json({ error: 'Course not found.' });
   }
 
+  // LEFT JOIN keeps every assignment, even ones with no submission from this user.
+  // For a student, submitted_at/score show their own progress; for an instructor they stay empty.
   const assignmentsResult = await pool.query(
-    `SELECT id, title, description, due_at, points
-     FROM assignments
-     WHERE course_id = $1
-     ORDER BY due_at`,
-    [course.id]
+    `SELECT a.id, a.title, a.description, a.due_at, a.points, s.submitted_at, s.score
+     FROM assignments a
+     LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = $2
+     WHERE a.course_id = $1
+     ORDER BY a.due_at`,
+    [course.id, req.user.id]
   );
   res.json({ course, assignments: assignmentsResult.rows });
 });
