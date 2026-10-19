@@ -5,8 +5,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import multer from 'multer';
 
-// All uploaded files go in server/uploads/ (ignored by Git).
-export const UPLOAD_DIR = fileURLToPath(new URL('../uploads/', import.meta.url));
+if (!process.env.UPLOAD_DIR) {
+  throw new Error('UPLOAD_DIR is missing. Add it to server/.env (see .env.example).');
+}
+
+// Uploaded files go in this folder inside server/ (ignored by Git).
+// The tests use a different folder, so they never touch your real uploads.
+const SERVER_DIR = fileURLToPath(new URL('..', import.meta.url));
+export const UPLOAD_DIR = path.resolve(SERVER_DIR, process.env.UPLOAD_DIR);
 mkdirSync(UPLOAD_DIR, { recursive: true });
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB

@@ -6,10 +6,12 @@ dist/
 
 # Secrets and local settings (never commit these)
 .env
+.env.test
 *.local.sql
 
-# Uploaded student files
+# Uploaded student files (real and from tests)
 server/uploads/
+server/uploads-test/
 
 # Logs and OS files
 *.log

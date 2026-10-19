@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --env-file=.env --watch src/index.js",
     "start": "node --env-file=.env src/index.js",
-    "db:seed": "node --env-file=.env db/seed.js"
+    "db:seed": "node --env-file=.env db/seed.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "bcryptjs": "2.4.3",
@@ -15,5 +16,8 @@
     "express-session": "1.19.0",
     "multer": "2.4.0",
     "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "vitest": "5.0.5"
   }
 }
