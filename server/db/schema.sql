@@ -11,6 +11,33 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- A course is taught by one instructor.
+-- REFERENCES makes a "foreign key": instructor_id must be the id of a real row in users.
+CREATE TABLE IF NOT EXISTS courses (
+  id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  code          TEXT NOT NULL UNIQUE,            -- e.g. "CS 101"
+  title         TEXT NOT NULL,
+  description   TEXT NOT NULL,
+  instructor_id INTEGER NOT NULL REFERENCES users (id)
+);
+
+-- Which student is in which course. One row = one student in one course.
+CREATE TABLE IF NOT EXISTS enrollments (
+  user_id   INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  course_id INTEGER NOT NULL REFERENCES courses (id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, course_id) -- the same student can't be enrolled twice
+);
+
+-- Assignments belong to a course. ON DELETE CASCADE: delete a course → its assignments go too.
+CREATE TABLE IF NOT EXISTS assignments (
+  id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  course_id   INTEGER NOT NULL REFERENCES courses (id) ON DELETE CASCADE,
+  title       TEXT NOT NULL,
+  description TEXT NOT NULL,
+  due_at      TIMESTAMPTZ NOT NULL,
+  points      INTEGER NOT NULL CHECK (points > 0)
+);
+
 -- Login sessions (used by connect-pg-simple). Survives server restarts.
 CREATE TABLE IF NOT EXISTS session (
   sid    VARCHAR PRIMARY KEY, -- the random ID stored in the browser cookie
