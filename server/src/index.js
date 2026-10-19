@@ -1,0 +1,33 @@
+import express from 'express';
+import session from 'express-session';
+import authRoutes from './routes/auth.js';
+
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET is missing. Copy server/.env.example to server/.env and fill it in.');
+}
+
+const app = express();
+
+// Read JSON request bodies, e.g. { "email": "...", "password": "..." }
+app.use(express.json());
+
+// Sessions: the server remembers who you are; the browser only holds a random ID in a cookie.
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET, // signs the cookie so it can't be faked
+    resave: false,                      // don't re-save sessions that didn't change
+    saveUninitialized: false,           // don't create sessions for visitors who haven't logged in
+    cookie: {
+      httpOnly: true,             // JavaScript in the page can't read the cookie
+      sameSite: 'lax',            // other websites can't send requests with your cookie
+      secure: false,              // must be true on HTTPS; we only run on http://localhost
+      maxAge: 1000 * 60 * 60 * 8, // log out automatically after 8 hours
+    },
+  })
+);
+
+app.use('/api/auth', authRoutes);
+
+app.listen(process.env.PORT, () => {
+  console.log(`Server running on http://localhost:${process.env.PORT}`);
+});
