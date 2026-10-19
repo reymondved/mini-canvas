@@ -37,12 +37,17 @@ Mini Canvas/
 ├── .gitignore
 ├── server/              Express API
 │   ├── .env.example     Template for secret settings (copy to .env)
+│   ├── .env.test.example Template for test settings (copy to .env.test)
+│   ├── vitest.config.js Test settings
 │   ├── db/
 │   │   ├── schema.sql   Table definitions
-│   │   └── seed.js      Creates tables and fake demo data
+│   │   ├── demoData.js  The fake demo data + seedDemoData() (used by seed and tests)
+│   │   └── seed.js      "npm run db:seed": resets the database to the demo data
+│   ├── test/            Automated API tests (Vitest)
 │   ├── uploads/         Submitted files (created automatically, ignored by Git)
 │   └── src/
-│       ├── index.js     Starts the server, sets up sessions
+│       ├── app.js       Builds the Express app: sessions + routes
+│       ├── index.js     Starts the app on PORT
 │       ├── db.js        Shared connection to PostgreSQL
 │       ├── access.js    The one rule for "may this user open this course?"
 │       ├── uploads.js   File upload settings (size, types, random names)
@@ -105,6 +110,28 @@ npm run dev
 ```
 
 Then open http://localhost:5173 in your browser. Requests to `/api/...` are forwarded to the server by Vite's proxy.
+
+## Automated tests
+
+The server has API tests for every security rule: login, course access, uploads, grading and roles. They run against a **separate test database** (`mini_canvas_test`) and a separate uploads folder, so they never touch your demo data.
+
+**First time only:**
+
+1. Copy `server/.env.test.example` to `server/.env.test` and use the same app password as in `.env`.
+2. As the `postgres` superuser, create the test database:
+
+   ```sql
+   CREATE DATABASE mini_canvas_test OWNER mini_canvas_app;
+   ```
+
+**Run the tests:**
+
+```bash
+cd server
+npm test
+```
+
+Run them before every commit. If one fails, read its name: it tells you which rule broke.
 
 ## Demo accounts (fake)
 
