@@ -10,6 +10,7 @@
 - Only **fake test accounts** are used. Never enter real student credentials.
 - Passwords are always **hashed** with bcrypt, never stored in plain text.
 - The app connects to the database as a **limited user** (`mini_canvas_app`), never as the `postgres` superuser.
+- Uploaded files are limited to **5 MB** and **PDF, .docx, .txt, PNG, JPG, ZIP**. They're saved under random names in `server/uploads/` (ignored by Git) and can only be downloaded by the student who submitted them or the course's instructor.
 
 ## Stack
 
@@ -26,7 +27,7 @@
 - [x] **Phase 2** – Express backend with login and logout endpoints
 - [x] **Phase 3** – PostgreSQL database, real authentication, student and instructor roles
 - [x] **Phase 4** – Student dashboard and course pages with assignments
-- [ ] **Phase 5** – Assignment submission, grading, and a grades page
+- [x] **Phase 5** – Assignment submission, grading, and a grades page
 
 ## Folder structure
 
@@ -39,11 +40,14 @@ Mini Canvas/
 │   ├── db/
 │   │   ├── schema.sql   Table definitions
 │   │   └── seed.js      Creates tables and fake demo data
+│   ├── uploads/         Submitted files (created automatically, ignored by Git)
 │   └── src/
 │       ├── index.js     Starts the server, sets up sessions
 │       ├── db.js        Shared connection to PostgreSQL
-│       ├── middleware/  Checks that run before routes (e.g. "must be logged in")
-│       └── routes/      API endpoints (auth, courses)
+│       ├── access.js    The one rule for "may this user open this course?"
+│       ├── uploads.js   File upload settings (size, types, random names)
+│       ├── middleware/  Checks that run before routes (logged in, role)
+│       └── routes/      API endpoints (auth, courses, assignments, submissions, grades)
 └── client/              React app (the part you see in the browser)
     ├── index.html
     ├── package.json
@@ -53,6 +57,7 @@ Mini Canvas/
         ├── main.jsx     App starting point
         ├── App.jsx      Routes: which URL shows which page
         ├── styles.css   Colors and layout
+        ├── format.js    Shared helpers for dates, file sizes and statuses
         ├── auth/        Shared "who is logged in" state (React Context)
         ├── components/  Reusable pieces (demo banner, header, RequireAuth)
         └── pages/       One file per screen
@@ -80,7 +85,7 @@ Requires [Node.js](https://nodejs.org) (LTS) and [PostgreSQL](https://www.postgr
    npm run db:seed
    ```
 
-   You can run `npm run db:seed` again any time. It **resets** courses and assignments to the demo data, so anything added by hand is removed.
+   You can run `npm run db:seed` again any time. It **resets** courses, assignments, submissions and uploaded files to the demo data, so anything added since is removed.
 
 **1. Server**
 
@@ -111,6 +116,15 @@ Then open http://localhost:5173 in your browser. Requests to `/api/...` are forw
 
 The demo student is enrolled in CS 101, WEB 201 and DB 210, but **not** MATH 120 (taught by instructor2). Use that to test that users can only open their own courses.
 
+The seed also adds two example submissions from the demo student in CS 101: **Hello, World** (already graded, 9/10) and **Loops Practice** (waiting for a grade).
+
+## Submission rules
+
+- Students upload one file per assignment. They can replace it any time **until it's graded**; after that it's locked.
+- Late submissions are allowed and marked **Late**.
+- Instructors grade on each assignment's page: a whole-number score from 0 to the assignment's points, plus optional feedback. Grades can be updated.
+- The Grades page totals only count graded assignments.
+
 ## API endpoints
 
 | Method | Path | Who | What it does |
@@ -121,3 +135,8 @@ The demo student is enrolled in CS 101, WEB 201 and DB 210, but **not** MATH 120
 | GET | `/api/courses` | Anyone | Public course catalog |
 | GET | `/api/courses/mine` | Logged in | Student: enrolled courses. Instructor: courses they teach |
 | GET | `/api/courses/:id` | Enrolled student or the course's instructor | Course with its assignments (404 otherwise) |
+| GET | `/api/assignments/:id` | Enrolled student or the course's instructor | Assignment + my submission (student) or all submissions (instructor) |
+| PUT | `/api/assignments/:id/submission` | Enrolled **student** | Upload or replace my file (form field `file`) |
+| GET | `/api/submissions/:id/file` | That student or the course's instructor | Download the submitted file |
+| PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
+| GET | `/api/grades` | **Student** | All my assignments and scores, by course |

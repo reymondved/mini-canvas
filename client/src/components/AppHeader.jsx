@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 
 // Top bar on every logged-in page.
@@ -17,6 +17,11 @@ export default function AppHeader() {
         <img src="/hau-logo.webp" alt="" />
         <span>Mini Canvas</span>
       </Link>
+      {/* NavLink adds an "active" class to the link for the page you're on */}
+      <nav className="app-nav">
+        <NavLink to="/dashboard">Dashboard</NavLink>
+        {user.role === 'student' && <NavLink to="/grades">Grades</NavLink>}
+      </nav>
       <div className="app-user">
         <span className="app-user-name">
           {user.name} <span className="course-code">{user.role}</span>

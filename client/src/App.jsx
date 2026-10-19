@@ -7,6 +7,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import BrowseCoursesPage from './pages/BrowseCoursesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import CoursePage from './pages/CoursePage.jsx';
+import AssignmentPage from './pages/AssignmentPage.jsx';
+import GradesPage from './pages/GradesPage.jsx';
 
 // Each <Route> says: "when the URL is this path, show this page".
 export default function App() {
@@ -24,6 +26,8 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/courses/:id" element={<CoursePage />} />
+          <Route path="/assignments/:id" element={<AssignmentPage />} />
+          <Route path="/grades" element={<GradesPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />
