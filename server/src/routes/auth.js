@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { pool } from '../db.js';
+import { requireLogin } from '../middleware/requireLogin.js';
 
 const router = Router();
 
@@ -51,18 +52,8 @@ router.post('/logout', (req, res) => {
 });
 
 // GET /api/auth/me — who is logged in right now? (used after a page refresh)
-router.get('/me', async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: 'Not logged in.' });
-  }
-  const result = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [
-    req.session.userId,
-  ]);
-  const user = result.rows[0];
-  if (!user) {
-    return res.status(401).json({ error: 'Not logged in.' });
-  }
-  res.json({ user });
+router.get('/me', requireLogin, (req, res) => {
+  res.json({ user: req.user });
 });
 
 export default router;

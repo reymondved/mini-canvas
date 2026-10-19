@@ -3,6 +3,7 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db.js';
 import authRoutes from './routes/auth.js';
+import courseRoutes from './routes/courses.js';
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET is missing. Copy server/.env.example to server/.env and fill it in.');
@@ -31,6 +32,7 @@ app.use(
 );
 
 app.use('/api/auth', authRoutes);
+app.use('/api/courses', courseRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on http://localhost:${process.env.PORT}`);

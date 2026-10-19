@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext.jsx';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { user, setUser } = useAuth();
 
   // "async" lets us "await" the server's answer without freezing the page.
   async function handleSubmit(event) {
@@ -44,17 +46,23 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+      const data = await response.json();
       if (response.ok) {
-        navigate('/home');
+        setUser(data.user); // tell the whole app who just logged in
+        navigate('/dashboard');
         return;
       }
-      const data = await response.json();
       setServerError(data.error);
     } catch {
       setServerError("Can't reach the server. Is it running?");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // Already logged in? Skip the login page.
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

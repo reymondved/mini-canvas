@@ -1,5 +1,6 @@
-// Creates the tables (if missing) and adds the fake demo accounts.
-// Run with:  npm run db:seed   (safe to run again; it updates existing demo users)
+// Creates the tables (if missing) and fills them with fake demo data.
+// Run with:  npm run db:seed
+// Safe to run again: demo users are updated, and courses/assignments are RESET to this starting data.
 import { readFile } from 'node:fs/promises';
 import bcrypt from 'bcryptjs';
 import { pool } from '../src/db.js';
@@ -8,24 +9,106 @@ import { pool } from '../src/db.js';
 const demoUsers = [
   { name: 'Demo Student', email: 'student@demo.test', password: 'Student123!', role: 'student' },
   { name: 'Demo Instructor', email: 'instructor@demo.test', password: 'Instructor123!', role: 'instructor' },
+  { name: 'Demo Instructor Two', email: 'instructor2@demo.test', password: 'Instructor123!', role: 'instructor' },
+];
+
+// Each course lists its instructor, whether the demo student is enrolled, and its assignments.
+// dueInDays: negative = already past, positive = upcoming (relative to when you run the seed).
+const demoCourses = [
+  {
+    code: 'CS 101',
+    title: 'Introduction to Programming',
+    description: 'Variables, loops, and functions: the building blocks of every program.',
+    instructor: 'instructor@demo.test',
+    studentEnrolled: true,
+    assignments: [
+      { title: 'Hello, World', description: 'Write and run your first program.', dueInDays: -3, points: 10 },
+      { title: 'Loops Practice', description: 'Print the numbers 1 to 100 using a loop.', dueInDays: 4, points: 20 },
+      { title: 'Functions Quiz', description: 'Short quiz on writing and calling functions.', dueInDays: 11, points: 30 },
+    ],
+  },
+  {
+    code: 'WEB 201',
+    title: 'Web Development Fundamentals',
+    description: 'Build web pages with HTML, CSS, and JavaScript.',
+    instructor: 'instructor@demo.test',
+    studentEnrolled: true,
+    assignments: [
+      { title: 'Personal Homepage', description: 'Build a one-page site about yourself using HTML and CSS.', dueInDays: 6, points: 50 },
+      { title: 'Responsive Layout', description: 'Make your homepage work on phones and desktops.', dueInDays: 14, points: 50 },
+    ],
+  },
+  {
+    code: 'DB 210',
+    title: 'Database Systems',
+    description: 'Design tables and write SQL queries to store and find data.',
+    instructor: 'instructor@demo.test',
+    studentEnrolled: true,
+    assignments: [
+      { title: 'Design a Schema', description: 'Draw the tables for a small library system.', dueInDays: 2, points: 40 },
+      { title: 'SQL Queries', description: 'Write SELECT queries with WHERE and JOIN.', dueInDays: 9, points: 60 },
+    ],
+  },
+  {
+    code: 'MATH 120',
+    title: 'Discrete Mathematics',
+    description: 'Logic, sets, and counting for computer science.',
+    instructor: 'instructor2@demo.test',
+    studentEnrolled: false, // used to test that the demo student can't open this course
+    assignments: [
+      { title: 'Logic Worksheet', description: 'Truth tables and logical operators.', dueInDays: 5, points: 25 },
+    ],
+  },
 ];
 
 const schema = await readFile(new URL('./schema.sql', import.meta.url), 'utf8');
 await pool.query(schema);
 console.log('Tables ready.');
 
+// --- Users ---
+const userIds = {}; // email → id, so courses can point at the right users
 for (const user of demoUsers) {
   const passwordHash = await bcrypt.hash(user.password, 12);
   // $1, $2... are placeholders. pg sends the values separately from the SQL,
   // so user data can never change the query itself (this prevents SQL injection).
-  await pool.query(
+  const result = await pool.query(
     `INSERT INTO users (name, email, password_hash, role)
      VALUES ($1, $2, $3, $4)
      ON CONFLICT (email) DO UPDATE
-       SET name = EXCLUDED.name, password_hash = EXCLUDED.password_hash, role = EXCLUDED.role`,
+       SET name = EXCLUDED.name, password_hash = EXCLUDED.password_hash, role = EXCLUDED.role
+     RETURNING id`,
     [user.name, user.email, passwordHash, user.role]
   );
+  userIds[user.email] = result.rows[0].id;
   console.log(`Seeded ${user.role}: ${user.email}`);
+}
+
+// --- Courses, enrollments, assignments ---
+// Start fresh: CASCADE also empties enrollments and assignments that point at courses.
+await pool.query('TRUNCATE courses RESTART IDENTITY CASCADE');
+
+for (const course of demoCourses) {
+  const result = await pool.query(
+    'INSERT INTO courses (code, title, description, instructor_id) VALUES ($1, $2, $3, $4) RETURNING id',
+    [course.code, course.title, course.description, userIds[course.instructor]]
+  );
+  const courseId = result.rows[0].id;
+
+  if (course.studentEnrolled) {
+    await pool.query('INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)', [
+      userIds['student@demo.test'],
+      courseId,
+    ]);
+  }
+
+  for (const a of course.assignments) {
+    await pool.query(
+      `INSERT INTO assignments (course_id, title, description, due_at, points)
+       VALUES ($1, $2, $3, now() + make_interval(days => $4), $5)`,
+      [courseId, a.title, a.description, a.dueInDays, a.points]
+    );
+  }
+  console.log(`Seeded course: ${course.code} (${course.assignments.length} assignments)`);
 }
 
 await pool.end();

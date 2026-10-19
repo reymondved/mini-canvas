@@ -53,6 +53,44 @@ a {
   padding: 0.5rem 1rem;
 }
 
+/* ---------- App header (logged-in pages) ---------- */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: var(--maroon);
+  color: var(--white);
+  padding: 0.75rem 1rem;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--white);
+  font-size: 1.15rem;
+  text-decoration: none;
+}
+
+.app-brand img {
+  width: 36px;
+  height: 36px;
+  background: var(--white);
+  border-radius: 50%;
+}
+
+.app-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-user-name {
+  font-weight: 600;
+}
+
 /* ---------- Shared pieces ---------- */
 .card {
   background: var(--white);
@@ -79,6 +117,16 @@ a {
 
 .btn-primary:hover {
   background: var(--maroon-dark);
+}
+
+.btn-light {
+  background: var(--white);
+  color: var(--maroon);
+  padding: 0.5rem 1rem;
+}
+
+.btn-light:hover {
+  background: var(--gray-light);
 }
 
 .notice {
@@ -209,6 +257,22 @@ a {
   font-size: 1.15rem;
 }
 
+/* Whole card is a link on the dashboard */
+.course-link {
+  display: block;
+  height: 100%;
+  color: inherit;
+  font-weight: normal;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.course-link:hover,
+.course-link:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
 .course-code {
   display: inline-block;
   background: var(--gold);
@@ -218,4 +282,67 @@ a {
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   margin-bottom: 0.5rem;
+}
+
+/* ---------- Course page ---------- */
+.course-header {
+  margin: 1rem 0 1.5rem;
+}
+
+.assignment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.assignment {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border-left: 4px solid var(--gold);
+}
+
+.assignment h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.assignment p {
+  margin: 0;
+}
+
+.assignment-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  text-align: right;
+}
+
+.tag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--black);
+}
+
+.tag-past {
+  background: #fdecea;
+  color: var(--error);
+}
+
+/* On narrow screens, put the due date and points on one line under the description */
+@media (max-width: 600px) {
+  .assignment-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: left;
+  }
 }
