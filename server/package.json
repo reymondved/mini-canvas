@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "node --env-file=.env --watch src/index.js",
-    "start": "node --env-file=.env src/index.js"
+    "start": "node --env-file=.env src/index.js",
+    "db:seed": "node --env-file=.env db/seed.js"
   },
   "dependencies": {
     "bcryptjs": "2.4.3",
+    "connect-pg-simple": "10.0.0",
     "express": "5.1.0",
-    "express-session": "1.19.0"
+    "express-session": "1.19.0",
+    "pg": "8.23.1"
   }
 }
