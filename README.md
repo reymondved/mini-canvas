@@ -22,7 +22,7 @@
 ## Roadmap
 
 - [x] **Phase 1** – Login page with validation, Forgot Password and Browse Courses pages
-- [ ] **Phase 2** – Express backend with login and logout endpoints
+- [x] **Phase 2** – Express backend with login and logout endpoints
 - [ ] **Phase 3** – PostgreSQL database, real authentication, student and instructor roles
 - [ ] **Phase 4** – Student dashboard and course pages with assignments
 - [ ] **Phase 5** – Assignment submission, grading, and a grades page
@@ -33,6 +33,12 @@
 Mini Canvas/
 ├── README.md
 ├── .gitignore
+├── server/              Express API (login, logout, sessions)
+│   ├── .env.example     Template for secret settings (copy to .env)
+│   └── src/
+│       ├── index.js     Starts the server, sets up sessions
+│       ├── routes/      API endpoints
+│       └── data/        Fake demo users (replaced by PostgreSQL in Phase 3)
 └── client/              React app (the part you see in the browser)
     ├── index.html
     ├── package.json
@@ -47,9 +53,21 @@ Mini Canvas/
         └── data/        Fake demo data
 ```
 
-## Running the frontend
+## Running the app
 
-Requires [Node.js](https://nodejs.org) (LTS version).
+Requires [Node.js](https://nodejs.org) (LTS version). You need **two terminals**: one for the server, one for the client.
+
+**1. Server** (first time only: copy `server/.env.example` to `server/.env` and set a long random `SESSION_SECRET`)
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+The server runs on http://localhost:3001 and restarts automatically when you change a file.
+
+**2. Client**
 
 ```bash
 cd client
@@ -57,4 +75,19 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:5173 in your browser.
+Then open http://localhost:5173 in your browser. Requests to `/api/...` are forwarded to the server by Vite's proxy.
+
+## Demo accounts (fake)
+
+| Role | Email | Password |
+|---|---|---|
+| Student | student@demo.test | Student123! |
+| Instructor | instructor@demo.test | Instructor123! |
+
+## API endpoints
+
+| Method | Path | What it does |
+|---|---|---|
+| POST | `/api/auth/login` | Checks email + password, starts a session |
+| POST | `/api/auth/logout` | Ends the session |
+| GET | `/api/auth/me` | Returns the logged-in user, or 401 |
