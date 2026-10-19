@@ -6,6 +6,7 @@ dist/
 
 # Secrets and local settings (never commit these)
 .env
+*.local.sql
 
 # Logs and OS files
 *.log

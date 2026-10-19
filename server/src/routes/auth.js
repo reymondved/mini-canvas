@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { findUserByEmail, findUserById, toPublicUser } from '../data/users.js';
+import { pool } from '../db.js';
 
 const router = Router();
 
@@ -13,9 +13,15 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
 
-  const user = findUserByEmail(email);
+  // $1 is a placeholder: the email is sent separately, so it can't change the SQL (no SQL injection).
+  const result = await pool.query(
+    'SELECT id, name, email, role, password_hash FROM users WHERE email = $1',
+    [email.trim().toLowerCase()]
+  );
+  const user = result.rows[0];
+
   // bcrypt.compare hashes the typed password and compares it to the stored hash.
-  const passwordMatches = user && (await bcrypt.compare(password, user.passwordHash));
+  const passwordMatches = user && (await bcrypt.compare(password, user.password_hash));
 
   // Same message for "no such email" and "wrong password",
   // so nobody can use this form to discover which emails exist.
@@ -29,7 +35,7 @@ router.post('/login', async (req, res) => {
       return res.status(500).json({ error: 'Could not start session.' });
     }
     req.session.userId = user.id;
-    res.json({ user: toPublicUser(user) });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   });
 });
 
@@ -45,12 +51,18 @@ router.post('/logout', (req, res) => {
 });
 
 // GET /api/auth/me — who is logged in right now? (used after a page refresh)
-router.get('/me', (req, res) => {
-  const user = req.session.userId && findUserById(req.session.userId);
+router.get('/me', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not logged in.' });
+  }
+  const result = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [
+    req.session.userId,
+  ]);
+  const user = result.rows[0];
   if (!user) {
     return res.status(401).json({ error: 'Not logged in.' });
   }
-  res.json({ user: toPublicUser(user) });
+  res.json({ user });
 });
 
 export default router;
