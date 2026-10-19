@@ -38,6 +38,23 @@ CREATE TABLE IF NOT EXISTS assignments (
   points      INTEGER NOT NULL CHECK (points > 0)
 );
 
+-- A student's uploaded file for an assignment, plus the instructor's grade.
+-- The file itself lives in server/uploads/; this row only describes it.
+CREATE TABLE IF NOT EXISTS submissions (
+  id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  assignment_id INTEGER NOT NULL REFERENCES assignments (id) ON DELETE CASCADE,
+  student_id    INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  file_name     TEXT NOT NULL,        -- original name, only shown to people (never used as a path)
+  stored_name   TEXT NOT NULL UNIQUE, -- random name of the file on disk
+  file_type     TEXT NOT NULL,        -- e.g. "application/pdf"
+  file_size     INTEGER NOT NULL,     -- in bytes
+  submitted_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  score         INTEGER CHECK (score >= 0), -- empty (NULL) until graded
+  feedback      TEXT,
+  graded_at     TIMESTAMPTZ,
+  UNIQUE (assignment_id, student_id)  -- one submission per student per assignment
+);
+
 -- Login sessions (used by connect-pg-simple). Survives server restarts.
 CREATE TABLE IF NOT EXISTS session (
   sid    VARCHAR PRIMARY KEY, -- the random ID stored in the browser cookie

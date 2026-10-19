@@ -1,0 +1,36 @@
+import { pool } from './db.js';
+
+// THE rule for who may open a course, written once and reused everywhere:
+// you teach it, or you're enrolled in it. ($2 is always the user's id.)
+const CAN_OPEN_COURSE = `(c.instructor_id = $2
+  OR EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = $2))`;
+
+// Ids in URLs are whole numbers; anything else can't be a real row.
+export function isValidId(value) {
+  return /^\d{1,9}$/.test(value);
+}
+
+// Returns the course if this user may open it, otherwise undefined.
+export async function findAccessibleCourse(courseId, userId) {
+  const result = await pool.query(
+    `SELECT c.id, c.code, c.title, c.description, u.name AS instructor_name
+     FROM courses c
+     JOIN users u ON u.id = c.instructor_id
+     WHERE c.id = $1 AND ${CAN_OPEN_COURSE}`,
+    [courseId, userId]
+  );
+  return result.rows[0];
+}
+
+// Returns the assignment (with its course) if this user may open its course, otherwise undefined.
+export async function findAccessibleAssignment(assignmentId, userId) {
+  const result = await pool.query(
+    `SELECT a.id, a.course_id, a.title, a.description, a.due_at, a.points,
+            c.code AS course_code, c.title AS course_title
+     FROM assignments a
+     JOIN courses c ON c.id = a.course_id
+     WHERE a.id = $1 AND ${CAN_OPEN_COURSE}`,
+    [assignmentId, userId]
+  );
+  return result.rows[0];
+}
