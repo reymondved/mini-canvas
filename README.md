@@ -8,22 +8,23 @@
 
 - The repository stays **private** and the app is **not deployed publicly**.
 - Only **fake test accounts** are used. Never enter real student credentials.
-- Passwords are always **hashed** (from Phase 3 on), never stored in plain text.
+- Passwords are always **hashed** with bcrypt, never stored in plain text.
+- The app connects to the database as a **limited user** (`mini_canvas_app`), never as the `postgres` superuser.
 
 ## Stack
 
 | Part | Technology |
 |---|---|
 | Frontend | React + Vite (JavaScript, plain CSS) |
-| Backend | Node.js + Express *(Phase 2)* |
-| Database | PostgreSQL *(Phase 3)* |
-| Login persistence | Sessions with cookies *(Phase 2–3)* |
+| Backend | Node.js + Express |
+| Database | PostgreSQL 18 (plain SQL with the `pg` package) |
+| Login persistence | Sessions with cookies, stored in PostgreSQL |
 
 ## Roadmap
 
 - [x] **Phase 1** – Login page with validation, Forgot Password and Browse Courses pages
 - [x] **Phase 2** – Express backend with login and logout endpoints
-- [ ] **Phase 3** – PostgreSQL database, real authentication, student and instructor roles
+- [x] **Phase 3** – PostgreSQL database, real authentication, student and instructor roles
 - [ ] **Phase 4** – Student dashboard and course pages with assignments
 - [ ] **Phase 5** – Assignment submission, grading, and a grades page
 
@@ -35,10 +36,13 @@ Mini Canvas/
 ├── .gitignore
 ├── server/              Express API (login, logout, sessions)
 │   ├── .env.example     Template for secret settings (copy to .env)
+│   ├── db/
+│   │   ├── schema.sql   Table definitions
+│   │   └── seed.js      Creates tables and fake demo accounts
 │   └── src/
 │       ├── index.js     Starts the server, sets up sessions
-│       ├── routes/      API endpoints
-│       └── data/        Fake demo users (replaced by PostgreSQL in Phase 3)
+│       ├── db.js        Shared connection to PostgreSQL
+│       └── routes/      API endpoints
 └── client/              React app (the part you see in the browser)
     ├── index.html
     ├── package.json
@@ -55,13 +59,30 @@ Mini Canvas/
 
 ## Running the app
 
-Requires [Node.js](https://nodejs.org) (LTS version). You need **two terminals**: one for the server, one for the client.
+Requires [Node.js](https://nodejs.org) (LTS) and [PostgreSQL](https://www.postgresql.org/download/) 18. You need **two terminals**: one for the server, one for the client.
 
-**1. Server** (first time only: copy `server/.env.example` to `server/.env` and set a long random `SESSION_SECRET`)
+**0. Database (first time only)**
+
+1. Copy `server/.env.example` to `server/.env`. Set a long random `SESSION_SECRET` and choose a password for the app user in `DATABASE_URL`.
+2. As the `postgres` superuser, create the app user and database (use the same password as in `DATABASE_URL`):
+
+   ```sql
+   CREATE ROLE mini_canvas_app LOGIN PASSWORD 'your-app-password';
+   CREATE DATABASE mini_canvas OWNER mini_canvas_app;
+   ```
+
+3. Create the tables and demo accounts:
+
+   ```bash
+   cd server
+   npm install
+   npm run db:seed
+   ```
+
+**1. Server**
 
 ```bash
 cd server
-npm install
 npm run dev
 ```
 

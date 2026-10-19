@@ -1,5 +1,7 @@
 import express from 'express';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import { pool } from './db.js';
 import authRoutes from './routes/auth.js';
 
 if (!process.env.SESSION_SECRET) {
@@ -7,6 +9,7 @@ if (!process.env.SESSION_SECRET) {
 }
 
 const app = express();
+const PgSessionStore = connectPgSimple(session);
 
 // Read JSON request bodies, e.g. { "email": "...", "password": "..." }
 app.use(express.json());
@@ -14,6 +17,7 @@ app.use(express.json());
 // Sessions: the server remembers who you are; the browser only holds a random ID in a cookie.
 app.use(
   session({
+    store: new PgSessionStore({ pool }), // save sessions in the "session" table, so restarts don't log you out
     secret: process.env.SESSION_SECRET, // signs the cookie so it can't be faked
     resave: false,                      // don't re-save sessions that didn't change
     saveUninitialized: false,           // don't create sessions for visitors who haven't logged in
