@@ -1,0 +1,13 @@
+# Installed packages (recreated by "npm install")
+node_modules/
+
+# Build output
+dist/
+
+# Secrets and local settings (never commit these)
+.env
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
