@@ -89,6 +89,20 @@ a {
   margin: 1rem 0 0;
 }
 
+.alert-error {
+  background: #fdecea;
+  border-left: 4px solid var(--error);
+  color: var(--error);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin: 0 0 1rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 /* ---------- Forms ---------- */
 .field {
   margin-bottom: 1rem;

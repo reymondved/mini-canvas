@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,21 +24,37 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState('');
+  const [serverError, setServerError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  function handleSubmit(event) {
+  // "async" lets us "await" the server's answer without freezing the page.
+  async function handleSubmit(event) {
     event.preventDefault(); // stop the browser from reloading the page
     const newErrors = validate(email, password);
     setErrors(newErrors);
+    setServerError('');
+    if (Object.keys(newErrors).length > 0) return;
 
-    if (Object.keys(newErrors).length > 0) {
-      setMessage('');
-      return;
+    setSubmitting(true);
+    try {
+      // fetch() sends a request to our Express server (through the Vite proxy).
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (response.ok) {
+        navigate('/home');
+        return;
+      }
+      const data = await response.json();
+      setServerError(data.error);
+    } catch {
+      setServerError("Can't reach the server. Is it running?");
+    } finally {
+      setSubmitting(false);
     }
-
-    // Phase 1 has no server yet, so we can't check the password.
-    // In Phase 2 this will send the email and password to the Express backend.
-    setMessage('Looks good! Real sign-in arrives in Phase 2, when we add the server.');
   }
 
   return (
@@ -78,10 +94,12 @@ export default function LoginPage() {
             {errors.password && <p id="password-error" className="field-error">{errors.password}</p>}
           </div>
 
-          <button type="submit" className="btn btn-primary">Sign in</button>
-        </form>
+          {serverError && <p className="alert-error" role="alert">{serverError}</p>}
 
-        {message && <p className="notice" role="status">{message}</p>}
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
 
         <div className="auth-links">
           <Link to="/forgot-password">Forgot Password?</Link>
