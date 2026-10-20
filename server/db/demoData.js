@@ -24,6 +24,18 @@ const demoCourses = [
     description: 'Variables, loops, and functions: the building blocks of every program.',
     instructor: 'instructor@demo.test',
     studentEnrolled: true,
+    syllabus: [
+      'Course goals',
+      'By the end of this course you can write small programs using variables, loops and functions.',
+      '',
+      'Grading',
+      '- Assignments: 60%',
+      '- Midterm exam: 20%',
+      '- Final project: 20%',
+      '',
+      'Late work',
+      'Late submissions are accepted but marked Late. Talk to me if you need more time.',
+    ].join('\n'),
     assignments: [
       {
         title: 'Hello, World',
@@ -163,8 +175,8 @@ export async function seedDemoData({ log = console.log } = {}) {
 
   for (const course of demoCourses) {
     const result = await pool.query(
-      'INSERT INTO courses (code, title, description, instructor_id) VALUES ($1, $2, $3, $4) RETURNING id',
-      [course.code, course.title, course.description, userIds[course.instructor]]
+      'INSERT INTO courses (code, title, description, instructor_id, syllabus) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+      [course.code, course.title, course.description, userIds[course.instructor], course.syllabus ?? '']
     );
     const courseId = result.rows[0].id;
     courseIds[course.code] = courseId;

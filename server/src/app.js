@@ -6,6 +6,7 @@ import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db.js';
 import authRoutes from './routes/auth.js';
 import courseRoutes from './routes/courses.js';
+import courseHomeRoutes from './routes/courseHome.js';
 import assignmentRoutes from './routes/assignments.js';
 import submissionRoutes from './routes/submissions.js';
 import gradeRoutes from './routes/grades.js';
@@ -41,6 +42,7 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/courses', courseHomeRoutes); // syllabus, people, grades
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/grades', gradeRoutes);
