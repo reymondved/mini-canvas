@@ -15,7 +15,7 @@
 
 | Part | Technology |
 |---|---|
-| Frontend | React + Vite (JavaScript, plain CSS), lucide-react icons, Inter font |
+| Frontend | React 18 + Vite 8 (JavaScript, plain CSS), React Router 7, lucide-react icons, Inter font |
 | Backend | Node.js + Express |
 | Database | PostgreSQL 18 (plain SQL with the `pg` package) |
 | Login persistence | Sessions with cookies, stored in PostgreSQL |
@@ -86,7 +86,7 @@ Mini Canvas/
 
 ## Running the app
 
-Requires [Node.js](https://nodejs.org) (LTS) and [PostgreSQL](https://www.postgresql.org/download/) 18. You need **two terminals**: one for the server, one for the client.
+Requires [Node.js](https://nodejs.org) (LTS, version 20.19 or newer, which Vite 8 needs) and [PostgreSQL](https://www.postgresql.org/download/) 18. You need **two terminals**: one for the server, one for the client.
 
 **0. Database (first time only)**
 

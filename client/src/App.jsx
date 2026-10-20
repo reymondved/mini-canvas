@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router';
 import { AuthProvider } from './auth/AuthContext.jsx';
 import DemoBanner from './components/DemoBanner.jsx';
 import RequireAuth from './components/RequireAuth.jsx';

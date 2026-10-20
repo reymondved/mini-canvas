@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../auth/AuthContext.jsx';
 
 // Wraps pages for one role (e.g. admin pages). Other users are sent back to their dashboard.

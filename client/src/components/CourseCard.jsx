@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { BookOpen, Code2, Database, Globe, Palette, Sigma } from 'lucide-react';
 
 // Pick an icon from the course code: "CS 101" → code, "DB 210" → database, ...
