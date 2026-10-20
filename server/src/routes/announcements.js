@@ -36,6 +36,13 @@ async function loadVisible(req, res) {
   return announcement;
 }
 
+// GET /api/announcements/:id — one announcement (for its own page), if I may see it.
+router.get('/:id', requireLogin, async (req, res) => {
+  const announcement = await loadVisible(req, res);
+  if (!announcement) return;
+  res.json({ announcement });
+});
+
 // ---------- Edit and delete (author only) ----------
 
 // PUT /api/announcements/:id — edit my announcement's text. It then shows "Edited <time>".

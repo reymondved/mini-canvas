@@ -47,6 +47,20 @@ function announcementForm(title, body, files = []) {
   return form;
 }
 
+describe('opening one announcement', () => {
+  test('people who may see it get the full announcement', async () => {
+    const res = await request(`/api/announcements/${A.cs101}`, { cookie: student });
+    expect(res.status).toBe(200);
+    expect(res.body.announcement).toMatchObject({ id: A.cs101, course_code: 'CS 101', is_read: false });
+  });
+
+  test("everyone else gets 404, even if they guess the number", async () => {
+    expect((await request(`/api/announcements/${A.math120}`, { cookie: student })).status).toBe(404);
+    expect((await request(`/api/announcements/${A.cs101}`, { cookie: admin })).status).toBe(404);
+    expect((await request('/api/announcements/abc', { cookie: student })).status).toBe(404);
+  });
+});
+
 describe('read and unread (each person has their own)', () => {
   test('new announcements start unread, but your own posts are already read', async () => {
     expect((await myAnnouncement(student, A.cs101)).is_read).toBe(false);

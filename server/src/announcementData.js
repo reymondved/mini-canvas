@@ -50,7 +50,8 @@ export function checkAnnouncementInput(body) {
   if (typeof text !== 'string' || !text.trim() || text.length > 5000) {
     return { error: 'Message is required (max 5000 characters).' };
   }
-  return { values: [title.trim(), text.trim()] };
+  // Forms with files always send line breaks as "\r\n"; store them as plain "\n" like everything else.
+  return { values: [title.trim(), text.trim().replace(/\r\n/g, '\n')] };
 }
 
 // Route handler step for "post an announcement" (course or site-wide), used AFTER the upload step.

@@ -194,6 +194,7 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 - Everyone sees site-wide announcements plus those of **their own** courses: enrolled (students) or taught (instructors). Admins only see site-wide ones.
 - The **author** can edit an announcement (it then shows **"Edited <date>"**, so readers know it changed) or delete it.
 - Text is stored and shown as **plain text**. React never turns it into HTML, so a `<script>` in a message is harmless (no XSS).
+- Lists show **compact cards** (title, 2-line preview, author, time, file and reply counts). **Click a card** to open the full announcement at `/announcements/:id`, which has the full text, attachments, replies, the reply box, **Mark as read / unread**, and Edit/Delete for the author.
 - The dashboard shows the newest 5 **unread** ones; **Show read** brings read ones back. A course page shows all of that course's announcements.
 - **Read / unread** is per person (stored in `announcement_reads`): marking one as read only changes it for you. Your own posts start as read.
 - **Replies** work on course announcements only (not site-wide ones), are plain text, and are **visible to everyone in the course**. The reply's author or the course's instructor (moderation) can delete a reply.
@@ -236,6 +237,7 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | GET | `/api/announcements` | Logged in | Newest 20: site-wide + my courses |
 | GET / POST | `/api/courses/:id/announcements` | Can open the course / the course's **instructor** | List / post `title`, `body` + up to 3 `files` (multipart form) |
 | POST | `/api/admin/announcements` | **Admin** | Post a site-wide announcement (same fields) |
+| GET | `/api/announcements/:id` | Anyone who can see it | One announcement (for its own page) |
 | PUT / DELETE | `/api/announcements/:id` | The **author** | Edit text (marked as edited) / delete (with replies and files) |
 | PUT / DELETE | `/api/announcements/:id/read` | Anyone who can see it | Mark as read / unread (for me only) |
 | GET / POST | `/api/announcements/:id/replies` | Anyone in the course | List replies / reply `{ body }` |
