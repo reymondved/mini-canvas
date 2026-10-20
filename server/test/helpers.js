@@ -33,7 +33,7 @@ let baseUrl;
 // and start the server on a random free port (0 = "any").
 export async function startTestServer() {
   await runMigrations({ log: () => {} });
-  await seedDemoData({ log: () => {} });
+  await seedDemoData({ log: () => {}, withHistory: false });
   server = app.listen(0);
   await once(server, 'listening');
   baseUrl = `http://localhost:${server.address().port}`;

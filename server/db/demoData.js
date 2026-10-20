@@ -148,7 +148,9 @@ const demoAnnouncements = [
 // courses, enrollments, assignments, submissions, announcements, uploaded files, and logins.
 // The tables must already exist: run "npm run db:migrate" first.
 // log: where progress messages go (tests pass a function that ignores them).
-export async function seedDemoData({ log = console.log } = {}) {
+// withHistory: also add a finished past course with weekly submissions, so the Study activity
+// heatmap has something to show. The tests turn it off, so their numbers stay small and exact.
+export async function seedDemoData({ log = console.log, withHistory = true } = {}) {
   // Start fresh. CASCADE also empties every table that points at users or courses,
   // and RESTART IDENTITY makes the ids start at 1 again (the tests rely on that).
   await pool.query('TRUNCATE users, courses, session RESTART IDENTITY CASCADE');
@@ -252,4 +254,62 @@ export async function seedDemoData({ log = console.log } = {}) {
     }
   }
   log(`Seeded ${demoAnnouncements.length} announcements`);
+
+  if (withHistory) {
+    await seedPastCourse(userIds, log);
+  }
+}
+
+// A course from "last term": 11 weekly practice sets and a quiz every other week, mostly
+// submitted the day before they were due. Week 5's practice was late and week 8's quiz was missed.
+async function seedPastCourse(userIds, log) {
+  const course = await pool.query(
+    `INSERT INTO courses (code, title, description, instructor_id)
+     VALUES ('CS 100', 'Computing Basics (last term)', 'How computers store and process information.', $1)
+     RETURNING id`,
+    [userIds['instructor@demo.test']]
+  );
+  const courseId = course.rows[0].id;
+  const studentId = userIds['student@demo.test'];
+  await pool.query('INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)', [studentId, courseId]);
+
+  let count = 0;
+  for (let week = 1; week <= 11; week++) {
+    const dueInDays = -80 + 7 * week; // from 73 days ago up to 3 days ago
+    const items = [{ title: `Week ${week} practice`, points: 10, lateDays: week === 5 ? 1 : 0 }];
+    if (week % 2 === 0) {
+      items.push({ title: `Week ${week} quiz`, points: 20, skip: week === 8 });
+    }
+    for (const item of items) {
+      const assignment = await pool.query(
+        `INSERT INTO assignments (course_id, title, description, due_at, points)
+         VALUES ($1, $2, 'Weekly work from last term.', date_trunc('day', now()) + make_interval(days => $3, hours => 23, mins => 59), $4)
+         RETURNING id`,
+        [courseId, item.title, dueInDays, item.points]
+      );
+      if (item.skip) continue; // missed: nothing submitted
+
+      // Submitted the evening before the due date (or a day late), and graded.
+      const storedName = randomUUID();
+      const content = `${item.title}: my answers\n`;
+      await writeFile(path.join(UPLOAD_DIR, storedName), content);
+      await pool.query(
+        `INSERT INTO submissions
+           (assignment_id, student_id, file_name, stored_name, file_type, file_size, submitted_at, score, graded_at)
+         VALUES ($1, $2, $3, $4, 'text/plain', $5,
+                 date_trunc('day', now()) + make_interval(days => $6, hours => 20), $7, now())`,
+        [
+          assignment.rows[0].id,
+          studentId,
+          `${item.title.toLowerCase().replaceAll(' ', '-')}.txt`,
+          storedName,
+          Buffer.byteLength(content),
+          dueInDays - 1 + (item.lateDays ?? 0) * 2, // late = the evening after the due date
+          Math.round(item.points * 0.85),
+        ]
+      );
+      count++;
+    }
+  }
+  log(`Seeded past course: CS 100 (${count} submissions for the activity heatmap)`);
 }
