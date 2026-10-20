@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router';
-import { Activity, BookOpen, ClipboardCheck, Mountain } from 'lucide-react';
+import { BookOpen, ClipboardCheck, Mountain } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api } from '../api.js';
 import Illustration from '../components/Illustration.jsx';
-import ComingSoon from '../components/ComingSoon.jsx';
+import StudyActivity from '../components/StudyActivity.jsx';
 import CourseCard from '../components/CourseCard.jsx';
 import { StudentProgress, TeachingSummary } from '../components/CourseProgress.jsx';
 import DeadlineCalendar from '../components/DeadlineCalendar.jsx';
@@ -57,9 +57,7 @@ export default function DashboardPage() {
           </section>
 
           {isStudent && (
-            <ComingSoon icon={Activity} title="Study activity">
-              A daily view of your study activity will appear here.
-            </ComingSoon>
+            <StudyActivity url="/api/activity" note="Your instructors can see your activity in their courses." />
           )}
 
           <section className="card">

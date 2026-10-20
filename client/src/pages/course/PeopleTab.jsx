@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router';
-import { Users } from 'lucide-react';
+import { Activity, Users } from 'lucide-react';
+import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api.js';
 import { initials } from '../../format.js';
+import StudyActivity from '../../components/StudyActivity.jsx';
 
 // Everyone in the course. Emails only arrive for the course's instructor (the server decides).
+// The instructor can also open each student's study activity IN THIS COURSE.
 export default function PeopleTab() {
   const { course } = useOutletContext();
+  const { user } = useAuth();
   const [people, setPeople] = useState(null);
   const [error, setError] = useState('');
+  const [openStudentId, setOpenStudentId] = useState(null); // whose activity is open
+  const isTeacher = course.instructor_id === user.id;
 
   useEffect(() => {
     api(`/api/courses/${course.id}/people`)
@@ -28,18 +34,41 @@ export default function PeopleTab() {
         {!people && !error && <p className="muted">Loading…</p>}
         {people && (
           <ul className="people-list">
-            {people.map((p) => (
-              <li key={p.id}>
-                <span className="avatar" aria-hidden="true">{initials(p.name)}</span>
-                <span className="people-text">
-                  <strong>{p.name}</strong>
-                  {p.email && <span className="muted small">{p.email}</span>}
-                </span>
-                <span className={p.role === 'instructor' ? 'tag' : 'tag tag-soon'}>
-                  {p.role === 'instructor' ? 'Instructor' : 'Student'}
-                </span>
-              </li>
-            ))}
+            {people.map((p) => {
+              const open = openStudentId === p.id;
+              return (
+                <li key={p.id}>
+                  <div className="people-row">
+                    <span className="avatar" aria-hidden="true">{initials(p.name)}</span>
+                    <span className="people-text">
+                      <strong>{p.name}</strong>
+                      {p.email && <span className="muted small">{p.email}</span>}
+                    </span>
+                    <span className={p.role === 'instructor' ? 'tag' : 'tag tag-soon'}>
+                      {p.role === 'instructor' ? 'Instructor' : 'Student'}
+                    </span>
+                    {isTeacher && p.role === 'student' && (
+                      <button
+                        type="button"
+                        className="btn btn-small"
+                        aria-expanded={open}
+                        onClick={() => setOpenStudentId(open ? null : p.id)}
+                      >
+                        <Activity size={14} aria-hidden="true" /> Activity
+                      </button>
+                    )}
+                  </div>
+                  {open && (
+                    <div className="people-activity">
+                      <StudyActivity
+                        url={`/api/courses/${course.id}/students/${p.id}/activity`}
+                        title={`${p.name} in ${course.code}`}
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

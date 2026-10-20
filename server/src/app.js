@@ -13,6 +13,7 @@ import gradeRoutes from './routes/grades.js';
 import adminRoutes from './routes/admin.js';
 import upcomingRoutes from './routes/upcoming.js';
 import announcementRoutes from './routes/announcements.js';
+import activityRoutes from './routes/activity.js';
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET is missing. Copy server/.env.example to server/.env and fill it in.');
@@ -49,3 +50,4 @@ app.use('/api/grades', gradeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upcoming', upcomingRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api', activityRoutes); // /api/activity and /api/courses/:id/students/:userId/activity

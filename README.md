@@ -35,7 +35,16 @@
 - [x] **Extra** – Announcements: instructors post to their courses, admins post site-wide
 - [x] **Extra** – Announcement replies, read/unread per person, and file attachments
 - [x] **Extra** – Courses page and course home tabs: About (with syllabus), Announcements, Assignments, Modules, Grades (with an instructor gradebook), People
-- [ ] **Later** – Modules, search, class schedule, resources, notifications, study activity, messages (shown as "Coming soon" for now)
+- [x] **Extra** – Study activity: a 12-week submissions heatmap and a Requirements summary (on time / late / missing)
+- [ ] **Later** – Modules, search, class schedule, resources, notifications, messages (shown as "Coming soon" for now)
+
+## Study activity
+
+- A **heatmap of the last 12 weeks**: one square per day, darker = more submissions that day (assignments and quizzes). Only real **submissions** count; nothing like page views or time spent is tracked.
+- A **Requirements** box: assignments **submitted on time**, **submitted late**, and **missing** (past due, nothing submitted).
+- Days follow **your time zone** (the browser sends it, e.g. `Asia/Manila`), so a late-night submission counts for the right day.
+- **Who can see it:** the student (their whole activity, on the dashboard) and **each instructor, only for their own course** (People tab → Activity). Admins can't. Students see a note saying their instructors can see it.
+- `npm run db:seed` adds a finished past course (**CS 100, last term**) with weekly submissions so the heatmap isn't empty. The tests seed without it.
 
 ## Course home
 
@@ -254,6 +263,8 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
 | GET | `/api/grades` | **Student** | All my assignments and scores, by course |
 | GET | `/api/upcoming` | **Student** | `{ days, missing, upcoming }`: my unsubmitted work |
+| GET | `/api/activity?tz=Asia/Manila` | **Student** | My 84-day submission counts + requirements |
+| GET | `/api/courses/:id/students/:userId/activity?tz=...` | The course's **instructor** | That student's activity in this course only |
 | GET | `/api/announcements` | Logged in | Newest 20: site-wide + my courses |
 | GET / POST | `/api/courses/:id/announcements` | Can open the course / the course's **instructor** | List / post `title`, `body` + up to 3 `files` (multipart form) |
 | POST | `/api/admin/announcements` | **Admin** | Post a site-wide announcement (same fields) |
