@@ -696,3 +696,55 @@ a {
   align-items: center;
   gap: 0.75rem;
 }
+
+/* ---------- Dashboard: Missing / Coming up ---------- */
+/* Side by side on wide screens, stacked on phones */
+.upcoming {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.upcoming-group {
+  border-left: 4px solid var(--gold);
+}
+
+.upcoming-group h2 {
+  font-size: 1.1rem;
+}
+
+.upcoming-missing {
+  border-left-color: var(--error);
+}
+
+.upcoming-missing h2 {
+  color: var(--error);
+}
+
+.upcoming-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.upcoming-group li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.upcoming-group li:last-child {
+  border-bottom: none;
+}
+
+.upcoming-group li .course-code {
+  margin-bottom: 0;
+}
+
+.upcoming-group p {
+  margin: 0;
+}

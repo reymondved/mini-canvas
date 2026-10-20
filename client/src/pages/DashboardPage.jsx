@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
+import UpcomingList from '../components/UpcomingList.jsx';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -28,6 +29,8 @@ export default function DashboardPage() {
     <main className="page">
       <h1>{heading}</h1>
       <p className="muted">Welcome back, {user.name}.</p>
+
+      {user.role === 'student' && <UpcomingList />}
 
       {error && <p className="alert-error" role="alert">{error}</p>}
       {!courses && !error && <p className="muted">Loading…</p>}
