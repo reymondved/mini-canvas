@@ -5,7 +5,8 @@ import { pool } from '../db.js';
 import { requireLogin } from '../middleware/requireLogin.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { isValidId } from '../access.js';
-import { checkAnnouncementInput, createAnnouncement } from '../announcementData.js';
+import { postAnnouncement } from '../announcementData.js';
+import { handleAnnouncementFiles } from '../uploads.js';
 
 const router = Router();
 
@@ -92,13 +93,8 @@ router.patch('/users/:id', async (req, res) => {
 // ---------- Announcements ----------
 
 // POST /api/admin/announcements — a SITE-WIDE announcement (no course): everyone sees it.
-router.post('/announcements', async (req, res) => {
-  const { error, values } = checkAnnouncementInput(req.body);
-  if (error) {
-    return res.status(400).json({ error });
-  }
-  res.status(201).json({ announcement: await createAnnouncement(null, req.user.id, values) });
-});
+// Optionally with up to 3 files. (Admin check already happened in router.use above.)
+router.post('/announcements', handleAnnouncementFiles, (req, res) => postAnnouncement(req, res, null));
 
 // ---------- Courses ----------
 

@@ -4,7 +4,8 @@ import { requireLogin } from '../middleware/requireLogin.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { findAccessibleCourse, findTaughtCourse, isValidId } from '../access.js';
 import { checkAssignmentInput } from '../assignmentInput.js';
-import { ANNOUNCEMENT_SELECT, checkAnnouncementInput, createAnnouncement } from '../announcementData.js';
+import { announcementSelect, postAnnouncement } from '../announcementData.js';
+import { handleAnnouncementFiles } from '../uploads.js';
 
 const router = Router();
 
@@ -98,23 +99,32 @@ router.get('/:id/announcements', requireLogin, async (req, res) => {
   if (!course) {
     return res.status(404).json({ error: 'Course not found.' });
   }
-  const result = await pool.query(`${ANNOUNCEMENT_SELECT} WHERE an.course_id = $1 ORDER BY an.created_at DESC`, [
-    course.id,
-  ]);
+  const result = await pool.query(
+    `${announcementSelect('$2')} WHERE an.course_id = $1 ORDER BY an.created_at DESC`,
+    [course.id, req.user.id]
+  );
   res.json({ announcements: result.rows });
 });
 
-// POST /api/courses/:id/announcements — post to a course. Only the instructor who TEACHES it.
-router.post('/:id/announcements', requireLogin, requireRole('instructor'), async (req, res) => {
+// Runs BEFORE the upload, so files from people who may not post here never reach the disk.
+async function checkTeachesCourse(req, res, next) {
   const course = isValidId(req.params.id) && (await findTaughtCourse(req.params.id, req.user.id));
   if (!course) {
     return res.status(404).json({ error: 'Course not found.' });
   }
-  const { error, values } = checkAnnouncementInput(req.body);
-  if (error) {
-    return res.status(400).json({ error });
-  }
-  res.status(201).json({ announcement: await createAnnouncement(course.id, req.user.id, values) });
-});
+  req.course = course;
+  next();
+}
+
+// POST /api/courses/:id/announcements — post to a course, optionally with up to 3 files.
+// Only the instructor who TEACHES it. Order: logged in → instructor → teaches it → save files → save post.
+router.post(
+  '/:id/announcements',
+  requireLogin,
+  requireRole('instructor'),
+  checkTeachesCourse,
+  handleAnnouncementFiles,
+  (req, res) => postAnnouncement(req, res, req.course.id)
+);
 
 export default router;
