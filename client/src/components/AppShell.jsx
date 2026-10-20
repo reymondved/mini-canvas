@@ -12,12 +12,12 @@ import {
   LogOut,
   Mail,
   Menu,
-  Search,
   Users,
   X,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import Logo from './Logo.jsx';
+import SearchBox from './SearchBox.jsx';
 import { initials } from '../format.js';
 
 // The menu for each role. soon: true = a page that doesn't exist yet (shown, but not clickable).
@@ -112,13 +112,9 @@ export default function AppShell({ children }) {
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          {/* Placeholders: these features don't exist yet, so they're shown but disabled */}
-          <label className="search" title="Search is coming soon">
-            <Search size={18} aria-hidden="true" />
-            <span className="visually-hidden">Search (coming soon)</span>
-            <input type="search" placeholder="Search: coming soon" disabled />
-          </label>
+          <SearchBox />
 
+          {/* Placeholders: these features don't exist yet, so they're shown but disabled */}
           <div className="topbar-actions">
             <button type="button" className="icon-button" disabled title="Messages: coming soon">
               <Mail size={20} />
