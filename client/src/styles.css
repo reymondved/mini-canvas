@@ -661,3 +661,38 @@ a {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* ---------- Instructor: create / edit assignments ---------- */
+/* A heading with a button on the right (wraps under it on phones) */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.section-header h1,
+.section-header h2 {
+  margin: 0;
+}
+
+.assignment-form {
+  margin-bottom: 1.25rem;
+  border-left: 4px solid var(--maroon);
+}
+
+.field input[type='datetime-local'] {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}

@@ -22,6 +22,16 @@ export async function findAccessibleCourse(courseId, userId) {
   return result.rows[0];
 }
 
+// Returns the course if this user TEACHES it, otherwise undefined.
+// Stricter than "may open": changing a course's content needs this.
+export async function findTaughtCourse(courseId, userId) {
+  const result = await pool.query('SELECT id FROM courses WHERE id = $1 AND instructor_id = $2', [
+    courseId,
+    userId,
+  ]);
+  return result.rows[0];
+}
+
 // Returns the assignment (with its course) if this user may open its course, otherwise undefined.
 export async function findAccessibleAssignment(assignmentId, userId) {
   const result = await pool.query(

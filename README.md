@@ -30,6 +30,7 @@
 - [x] **Phase 5** – Assignment submission, grading, and a grades page
 - [x] **Extra** – Automated API tests (Vitest)
 - [x] **Extra** – Admin role: manage users and courses, temporary passwords, database migrations
+- [x] **Extra** – Instructors create and edit assignments
 
 ## Folder structure
 
@@ -167,6 +168,14 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 - Instructors grade on each assignment's page: a whole-number score from 0 to the assignment's points, plus optional feedback. Grades can be updated.
 - The Grades page totals only count graded assignments.
 
+## Assignment rules
+
+- Only the instructor who **teaches** a course can add or edit its assignments (not other instructors, students or admins).
+- Title (required), description, due date and time, and points (a whole number from 1 to 1000).
+- Due dates are picked in your **local time**, sent to the server in **UTC**, and stored with the time zone, so everyone sees the right moment in their own time zone.
+- Points can't be lowered below a grade already given (a 9/10 can't become 9/5).
+- Assignments can't be deleted, because that would erase students' work.
+
 ## Admin rules
 
 - Admins create users. The server makes a random **temporary password**, shown to the admin **once**. The new user must change it at their first login; until then, the server blocks everything else.
@@ -186,7 +195,9 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | GET | `/api/courses` | Anyone | Public course catalog |
 | GET | `/api/courses/mine` | Logged in | Student: enrolled courses. Instructor: courses they teach |
 | GET | `/api/courses/:id` | Enrolled student or the course's instructor | Course with its assignments (404 otherwise) |
+| POST | `/api/courses/:id/assignments` | The course's **instructor** | Create `{ title, description, dueAt, points }` |
 | GET | `/api/assignments/:id` | Enrolled student or the course's instructor | Assignment + my submission (student) or all submissions (instructor) |
+| PUT | `/api/assignments/:id` | The course's **instructor** | Edit `{ title, description, dueAt, points }` |
 | PUT | `/api/assignments/:id/submission` | Enrolled **student** | Upload or replace my file (form field `file`) |
 | GET | `/api/submissions/:id/file` | That student or the course's instructor | Download the submitted file |
 | PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
