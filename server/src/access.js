@@ -2,7 +2,7 @@ import { pool } from './db.js';
 
 // THE rule for who may open a course, written once and reused everywhere:
 // you teach it, or you're enrolled in it. ($2 is always the user's id.)
-const CAN_OPEN_COURSE = `(c.instructor_id = $2
+export const CAN_OPEN_COURSE = `(c.instructor_id = $2
   OR EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = $2))`;
 
 // Ids in URLs are whole numbers; anything else can't be a real row.
