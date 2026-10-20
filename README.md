@@ -32,7 +32,8 @@
 - [x] **Extra** – Instructors create and edit assignments
 - [x] **Extra** – "Missing" and "Coming up" lists on the student dashboard
 - [x] **Extra** – Redesign as **Eng Academy**: sidebar layout, new dashboard, blue design system
-- [ ] **Later** – Announcements, study activity, class schedule, resources, search, messages, notifications (shown as "Coming soon" for now)
+- [x] **Extra** – Announcements: instructors post to their courses, admins post site-wide
+- [ ] **Later** – Search, class schedule, resources, notifications, study activity, messages (shown as "Coming soon" for now)
 
 ## Folder structure
 
@@ -186,6 +187,14 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 - Points can't be lowered below a grade already given (a 9/10 can't become 9/5).
 - Assignments can't be deleted, because that would erase students' work.
 
+## Announcement rules
+
+- **Instructors** post to the courses they teach (from the course page). **Admins** post **site-wide** announcements for everyone (from the Users page).
+- Everyone sees site-wide announcements plus those of **their own** courses: enrolled (students) or taught (instructors). Admins only see site-wide ones.
+- The **author** can edit an announcement (it then shows **"Edited <date>"**, so readers know it changed) or delete it.
+- Text is stored and shown as **plain text**. React never turns it into HTML, so a `<script>` in a message is harmless (no XSS).
+- The dashboard shows the newest 5; a course page shows all of that course's announcements.
+
 ## Student dashboard: to-do list
 
 - **Missing:** past the due date and nothing submitted.
@@ -220,6 +229,10 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
 | GET | `/api/grades` | **Student** | All my assignments and scores, by course |
 | GET | `/api/upcoming` | **Student** | `{ days, missing, upcoming }`: my unsubmitted work |
+| GET | `/api/announcements` | Logged in | Newest 20: site-wide + my courses |
+| GET / POST | `/api/courses/:id/announcements` | Can open the course / the course's **instructor** | List / post `{ title, body }` |
+| POST | `/api/admin/announcements` | **Admin** | Post a site-wide announcement |
+| PUT / DELETE | `/api/announcements/:id` | The **author** | Edit (marked as edited) / delete |
 | GET / POST | `/api/admin/users` | **Admin** | List users / create one (returns a one-time temporary password) |
 | PATCH | `/api/admin/users/:id` | **Admin** | `{ isActive }`: deactivate or reactivate |
 | GET / POST | `/api/admin/courses` | **Admin** | List courses / create one |
