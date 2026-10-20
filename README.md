@@ -33,6 +33,7 @@
 - [x] **Extra** – "Missing" and "Coming up" lists on the student dashboard
 - [x] **Extra** – Redesign as **Eng Academy**: sidebar layout, new dashboard, blue design system
 - [x] **Extra** – Announcements: instructors post to their courses, admins post site-wide
+- [x] **Extra** – Announcement replies, read/unread per person, and file attachments
 - [ ] **Later** – Search, class schedule, resources, notifications, study activity, messages (shown as "Coming soon" for now)
 
 ## Folder structure
@@ -193,7 +194,11 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 - Everyone sees site-wide announcements plus those of **their own** courses: enrolled (students) or taught (instructors). Admins only see site-wide ones.
 - The **author** can edit an announcement (it then shows **"Edited <date>"**, so readers know it changed) or delete it.
 - Text is stored and shown as **plain text**. React never turns it into HTML, so a `<script>` in a message is harmless (no XSS).
-- The dashboard shows the newest 5; a course page shows all of that course's announcements.
+- Lists show **compact cards** (title, 2-line preview, author, time, file and reply counts). **Click a card** to open the full announcement at `/announcements/:id`, which has the full text, attachments, replies, the reply box, **Mark as read / unread**, and Edit/Delete for the author.
+- The dashboard shows the newest 5 **unread** ones; **Show read** brings read ones back. A course page shows all of that course's announcements.
+- **Read / unread** is per person (stored in `announcement_reads`): marking one as read only changes it for you. Your own posts start as read.
+- **Replies** work on course announcements only (not site-wide ones), are plain text, and are **visible to everyone in the course**. The reply's author or the course's instructor (moderation) can delete a reply.
+- **Files:** up to **3 per announcement**, attached when posting, with the same rules as submissions (5 MB, allowed types, random names on disk). Only people who can see the announcement can download them. Deleting an announcement also deletes its replies and files. Editing changes the text only.
 
 ## Student dashboard: to-do list
 
@@ -230,9 +235,14 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | GET | `/api/grades` | **Student** | All my assignments and scores, by course |
 | GET | `/api/upcoming` | **Student** | `{ days, missing, upcoming }`: my unsubmitted work |
 | GET | `/api/announcements` | Logged in | Newest 20: site-wide + my courses |
-| GET / POST | `/api/courses/:id/announcements` | Can open the course / the course's **instructor** | List / post `{ title, body }` |
-| POST | `/api/admin/announcements` | **Admin** | Post a site-wide announcement |
-| PUT / DELETE | `/api/announcements/:id` | The **author** | Edit (marked as edited) / delete |
+| GET / POST | `/api/courses/:id/announcements` | Can open the course / the course's **instructor** | List / post `title`, `body` + up to 3 `files` (multipart form) |
+| POST | `/api/admin/announcements` | **Admin** | Post a site-wide announcement (same fields) |
+| GET | `/api/announcements/:id` | Anyone who can see it | One announcement (for its own page) |
+| PUT / DELETE | `/api/announcements/:id` | The **author** | Edit text (marked as edited) / delete (with replies and files) |
+| PUT / DELETE | `/api/announcements/:id/read` | Anyone who can see it | Mark as read / unread (for me only) |
+| GET / POST | `/api/announcements/:id/replies` | Anyone in the course | List replies / reply `{ body }` |
+| DELETE | `/api/announcements/replies/:replyId` | Reply's author or the course's instructor | Delete a reply |
+| GET | `/api/announcements/files/:fileId` | Anyone who can see the announcement | Download an attached file |
 | GET / POST | `/api/admin/users` | **Admin** | List users / create one (returns a one-time temporary password) |
 | PATCH | `/api/admin/users/:id` | **Admin** | `{ isActive }`: deactivate or reactivate |
 | GET / POST | `/api/admin/courses` | **Admin** | List courses / create one |

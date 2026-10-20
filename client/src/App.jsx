@@ -10,6 +10,7 @@ import CoursePage from './pages/CoursePage.jsx';
 import AssignmentPage from './pages/AssignmentPage.jsx';
 import GradesPage from './pages/GradesPage.jsx';
 import ChangePasswordPage from './pages/ChangePasswordPage.jsx';
+import AnnouncementPage from './pages/AnnouncementPage.jsx';
 import RequireRole from './components/RequireRole.jsx';
 import AdminUsersPage from './pages/AdminUsersPage.jsx';
 import AdminCoursesPage from './pages/AdminCoursesPage.jsx';
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/assignments/:id" element={<AssignmentPage />} />
           <Route path="/grades" element={<GradesPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/announcements/:id" element={<AnnouncementPage />} />
 
           {/* Pages inside here are for admins only */}
           <Route element={<RequireRole role="admin" />}>

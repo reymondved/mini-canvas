@@ -89,6 +89,7 @@ const demoCourses = [
 ];
 
 // course: null = site-wide (for everyone). hoursAgo: how long ago it was posted.
+// files and replies are optional examples (replies are posted one hour apart, after the announcement).
 const demoAnnouncements = [
   {
     course: null,
@@ -103,6 +104,16 @@ const demoAnnouncements = [
     title: 'CS 101 midterm: Oct 27, 9:00–11:00',
     body: 'The midterm covers variables, loops and functions. Room 204. Bring a pencil; no laptops.',
     hoursAgo: 20,
+    files: [
+      {
+        fileName: 'midterm-coverage.txt',
+        content: 'CS 101 midterm coverage\n- Variables and types\n- Loops (for, while)\n- Functions and return values\n',
+      },
+    ],
+    replies: [
+      { author: 'student@demo.test', body: 'Is it open notes?' },
+      { author: 'instructor@demo.test', body: 'No, closed notes. You may bring one index card.' },
+    ],
   },
   {
     course: 'WEB 201',
@@ -196,13 +207,37 @@ export async function seedDemoData({ log = console.log } = {}) {
     log(`Seeded course: ${course.code} (${course.assignments.length} assignments)`);
   }
 
-  // --- Announcements ---
+  // --- Announcements (+ the author's own "read" mark, example files and replies) ---
   for (const a of demoAnnouncements) {
-    await pool.query(
+    const result = await pool.query(
       `INSERT INTO announcements (course_id, author_id, title, body, created_at)
-       VALUES ($1, $2, $3, $4, now() - make_interval(hours => $5))`,
+       VALUES ($1, $2, $3, $4, now() - make_interval(hours => $5))
+       RETURNING id`,
       [a.course ? courseIds[a.course] : null, userIds[a.author], a.title, a.body, a.hoursAgo]
     );
+    const announcementId = result.rows[0].id;
+    await pool.query('INSERT INTO announcement_reads (user_id, announcement_id) VALUES ($1, $2)', [
+      userIds[a.author],
+      announcementId,
+    ]);
+
+    for (const file of a.files ?? []) {
+      const storedName = randomUUID();
+      await writeFile(path.join(UPLOAD_DIR, storedName), file.content);
+      await pool.query(
+        `INSERT INTO announcement_files (announcement_id, file_name, stored_name, file_type, file_size)
+         VALUES ($1, $2, $3, 'text/plain', $4)`,
+        [announcementId, file.fileName, storedName, Buffer.byteLength(file.content)]
+      );
+    }
+
+    for (const [i, reply] of (a.replies ?? []).entries()) {
+      await pool.query(
+        `INSERT INTO announcement_replies (announcement_id, author_id, body, created_at)
+         VALUES ($1, $2, $3, now() - make_interval(hours => $4))`,
+        [announcementId, userIds[reply.author], reply.body, a.hoursAgo - i - 1]
+      );
+    }
   }
   log(`Seeded ${demoAnnouncements.length} announcements`);
 }

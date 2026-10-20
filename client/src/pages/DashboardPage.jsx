@@ -87,8 +87,9 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* Newest 5 from site-wide + my courses. Instructors post from each course page. */}
-          <AnnouncementsPanel loadUrl="/api/announcements" limit={5} showCourse />
+          {/* Newest 5 UNREAD from site-wide + my courses; "Show read" brings the rest back.
+              Instructors post from each course page. */}
+          <AnnouncementsPanel loadUrl="/api/announcements" limit={5} showCourse unreadOnly />
         </div>
 
         <aside className="dashboard-side" aria-label="Schedule and tasks">
