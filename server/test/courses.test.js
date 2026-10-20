@@ -49,6 +49,22 @@ describe('my courses', () => {
   });
 });
 
+describe('progress numbers for the dashboard', () => {
+  test("a student sees how many of each course's assignments they submitted", async () => {
+    const res = await request('/api/courses/mine', { cookie: student });
+    const cs101 = res.body.courses.find((c) => c.code === 'CS 101');
+    // CS 101 has 3 assignments; the demo student submitted 2 (Hello, World and Loops Practice).
+    expect(cs101).toMatchObject({ assignment_count: 3, submitted_count: 2 });
+  });
+
+  test('an instructor sees how many submissions are waiting for a grade', async () => {
+    const res = await request('/api/courses/mine', { cookie: instructor });
+    const cs101 = res.body.courses.find((c) => c.code === 'CS 101');
+    // Loops Practice is submitted but not graded yet.
+    expect(cs101).toMatchObject({ assignment_count: 3, to_grade_count: 1 });
+  });
+});
+
 describe('opening one course (authorization)', () => {
   test('an enrolled student can open it and see its assignments', async () => {
     const res = await request(`/api/courses/${IDS.courses.cs101}`, { cookie: student });

@@ -20,16 +20,26 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/courses/mine — students: courses they're enrolled in. Instructors: courses they teach.
+// Each course also has numbers for the dashboard's progress bars:
+//   assignment_count — how many assignments the course has
+//   submitted_count  — students: how many of those I've submitted
+//   to_grade_count   — instructors: submissions still waiting for a grade
+// (A "subquery" in parentheses counts rows for each course.)
 router.get('/mine', requireLogin, async (req, res) => {
+  const assignmentCount = '(SELECT count(*)::int FROM assignments a WHERE a.course_id = c.id) AS assignment_count';
   const query =
     req.user.role === 'student'
-      ? `SELECT c.id, c.code, c.title, c.description, u.name AS instructor_name
+      ? `SELECT c.id, c.code, c.title, c.description, u.name AS instructor_name, ${assignmentCount},
+                (SELECT count(*)::int FROM submissions s JOIN assignments a ON a.id = s.assignment_id
+                 WHERE a.course_id = c.id AND s.student_id = $1) AS submitted_count
          FROM courses c
          JOIN users u ON u.id = c.instructor_id
          JOIN enrollments e ON e.course_id = c.id
          WHERE e.user_id = $1
          ORDER BY c.code`
-      : `SELECT c.id, c.code, c.title, c.description, u.name AS instructor_name
+      : `SELECT c.id, c.code, c.title, c.description, u.name AS instructor_name, ${assignmentCount},
+                (SELECT count(*)::int FROM submissions s JOIN assignments a ON a.id = s.assignment_id
+                 WHERE a.course_id = c.id AND s.score IS NULL) AS to_grade_count
          FROM courses c
          JOIN users u ON u.id = c.instructor_id
          WHERE c.instructor_id = $1
