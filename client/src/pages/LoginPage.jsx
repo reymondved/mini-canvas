@@ -110,7 +110,7 @@ export default function LoginPage() {
 
       <div className="auth-links">
         <Link to="/forgot-password">Forgot Password?</Link>
-        <Link to="/courses">Browse courses</Link>
+        <Link to="/catalog">Browse courses</Link>
       </div>
     </AuthLayout>
   );

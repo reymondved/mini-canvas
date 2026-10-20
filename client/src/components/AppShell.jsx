@@ -3,12 +3,12 @@ import { NavLink, useLocation, useNavigate } from 'react-router';
 import {
   Bell,
   BookCopy,
+  BookOpen,
   CalendarDays,
   FolderOpen,
   GraduationCap,
   KeyRound,
   LayoutGrid,
-  Library,
   LogOut,
   Mail,
   Menu,
@@ -18,38 +18,29 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import Logo from './Logo.jsx';
+import { initials } from '../format.js';
 
 // The menu for each role. soon: true = a page that doesn't exist yet (shown, but not clickable).
+// whole: false = also highlight on pages below it (Courses stays highlighted inside /courses/1/people).
 const NAV_ITEMS = {
   student: [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
+    { to: '/courses', label: 'Courses', icon: BookOpen, whole: false },
     { to: '/grades', label: 'Grades', icon: GraduationCap },
-    { to: '/courses', label: 'Course catalog', icon: Library },
     { label: 'Class schedule', icon: CalendarDays, soon: true },
     { label: 'Resources', icon: FolderOpen, soon: true },
   ],
   instructor: [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
-    { to: '/courses', label: 'Course catalog', icon: Library },
+    { to: '/courses', label: 'Courses', icon: BookOpen, whole: false },
     { label: 'Class schedule', icon: CalendarDays, soon: true },
     { label: 'Resources', icon: FolderOpen, soon: true },
   ],
   admin: [
     { to: '/admin/users', label: 'Users', icon: Users },
-    { to: '/admin/courses', label: 'Courses', icon: BookCopy },
-    { to: '/courses', label: 'Course catalog', icon: Library },
+    { to: '/admin/courses', label: 'Courses', icon: BookCopy, whole: false },
   ],
 };
-
-// "Demo Student" → "DS", for the round avatar.
-function initials(name) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 // The frame around every logged-in page: sidebar on the left, top bar, then the page itself.
 export default function AppShell({ children }) {
@@ -85,7 +76,7 @@ export default function AppShell({ children }) {
               </span>
             ) : (
               // NavLink adds the "active" class to the link for the page you're on
-              <NavLink key={item.to} to={item.to} end className="nav-item">
+              <NavLink key={item.to} to={item.to} end={item.whole !== false} className="nav-item">
                 <item.icon size={20} aria-hidden="true" />
                 {item.label}
               </NavLink>
