@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
+import AuthLayout from '../components/AuthLayout.jsx';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -66,54 +67,51 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
-      <div className="card auth-card">
-        <img src="/hau-logo.webp" alt="Holy Angel University seal" className="auth-logo" />
-        <h1>Mini Canvas</h1>
-        <p className="muted">Sign in to your demo account</p>
+    <AuthLayout>
+      <h1>Sign in</h1>
+      <p className="muted">Welcome to Eng Academy. Use one of the demo accounts.</p>
 
-        {/* noValidate turns off the browser's built-in popups so our own messages show */}
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-            />
-            {errors.email && <p id="email-error" className="field-error">{errors.email}</p>}
-          </div>
-
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={errors.password ? 'password-error' : undefined}
-            />
-            {errors.password && <p id="password-error" className="field-error">{errors.password}</p>}
-          </div>
-
-          {serverError && <p className="alert-error" role="alert">{serverError}</p>}
-
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-
-        <div className="auth-links">
-          <Link to="/forgot-password">Forgot Password?</Link>
-          <Link to="/courses">Browse courses</Link>
+      {/* noValidate turns off the browser's built-in popups so our own messages show */}
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="field">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="username"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+          />
+          {errors.email && <p id="email-error" className="field-error">{errors.email}</p>}
         </div>
+
+        <div className="field">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={errors.password ? 'password-error' : undefined}
+          />
+          {errors.password && <p id="password-error" className="field-error">{errors.password}</p>}
+        </div>
+
+        {serverError && <p className="alert-error" role="alert">{serverError}</p>}
+
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+
+      <div className="auth-links">
+        <Link to="/forgot-password">Forgot Password?</Link>
+        <Link to="/courses">Browse courses</Link>
       </div>
-    </main>
+    </AuthLayout>
   );
 }

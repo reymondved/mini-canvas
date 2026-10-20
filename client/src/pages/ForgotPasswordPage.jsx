@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import AuthLayout from '../components/AuthLayout.jsx';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,41 +26,39 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="auth-page">
-      <div className="card auth-card">
-        <h1>Reset your password</h1>
+    <AuthLayout>
+      <h1>Reset your password</h1>
 
-        {sent ? (
-          <p className="notice" role="status">
-            If an account exists for <strong>{email.trim()}</strong>, a reset link would be sent.
-            (Demo: password reset arrives in a later phase.)
-          </p>
-        ) : (
-          <>
-            <p className="muted">Enter your account email and we'll help you reset your password.</p>
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="field">
-                <label htmlFor="reset-email">Email</label>
-                <input
-                  id="reset-email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  aria-invalid={Boolean(error)}
-                  aria-describedby={error ? 'reset-email-error' : undefined}
-                />
-                {error && <p id="reset-email-error" className="field-error">{error}</p>}
-              </div>
-              <button type="submit" className="btn btn-primary">Send reset link</button>
-            </form>
-          </>
-        )}
+      {sent ? (
+        <p className="notice" role="status">
+          If an account exists for <strong>{email.trim()}</strong>, a reset link would be sent.
+          (Demo: password reset arrives in a later phase.)
+        </p>
+      ) : (
+        <>
+          <p className="muted">Enter your account email and we'll help you reset your password.</p>
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <label htmlFor="reset-email">Email</label>
+              <input
+                id="reset-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'reset-email-error' : undefined}
+              />
+              {error && <p id="reset-email-error" className="field-error">{error}</p>}
+            </div>
+            <button type="submit" className="btn btn-primary">Send reset link</button>
+          </form>
+        </>
+      )}
 
-        <div className="auth-links">
-          <Link to="/login">← Back to sign in</Link>
-        </div>
+      <div className="auth-links">
+        <Link to="/login">← Back to sign in</Link>
       </div>
-    </main>
+    </AuthLayout>
   );
 }
