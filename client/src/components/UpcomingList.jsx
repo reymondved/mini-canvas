@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ChevronRight, ListTodo } from 'lucide-react';
 import { api } from '../api.js';
 import { formatDate, formatRelative } from '../format.js';

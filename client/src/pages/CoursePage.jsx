@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { formatDate, submissionStatus } from '../format.js';
 import { api } from '../api.js';

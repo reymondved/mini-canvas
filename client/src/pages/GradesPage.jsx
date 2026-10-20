@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { formatDate, submissionStatus } from '../format.js';
 
 // Total = points earned on GRADED assignments / points possible on those assignments.
