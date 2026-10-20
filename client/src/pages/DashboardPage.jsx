@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 
 export default function DashboardPage() {
@@ -16,6 +16,11 @@ export default function DashboardPage() {
       .then((data) => setCourses(data.courses))
       .catch(() => setError('Could not load your courses.'));
   }, []);
+
+  // Admins don't have courses of their own; their home is the Users page.
+  if (user.role === 'admin') {
+    return <Navigate to="/admin/users" replace />;
+  }
 
   const heading = user.role === 'instructor' ? 'Courses you teach' : 'My courses';
 

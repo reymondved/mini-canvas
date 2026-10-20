@@ -5,6 +5,7 @@ import { pool } from '../src/db.js';
 import { app } from '../src/app.js';
 import { UPLOAD_DIR } from '../src/uploads.js';
 import { seedDemoData } from '../db/demoData.js';
+import { runMigrations } from '../db/runMigrations.js';
 
 // Safety check: tests wipe the database, so refuse to run against anything but a *_test database.
 if (!process.env.DATABASE_URL.endsWith('_test')) {
@@ -15,9 +16,11 @@ if (!process.env.DATABASE_URL.endsWith('_test')) {
 export const STUDENT = { email: 'student@demo.test', password: 'Student123!' };
 export const INSTRUCTOR = { email: 'instructor@demo.test', password: 'Instructor123!' };
 export const INSTRUCTOR_2 = { email: 'instructor2@demo.test', password: 'Instructor123!' };
+export const ADMIN = { email: 'admin@demo.test', password: 'Admin123!' };
 
 // Ids of the demo data. They're always the same because the seed restarts the counters.
 export const IDS = {
+  users: { student: 1, instructor: 2, instructor2: 3, admin: 4 },
   courses: { cs101: 1, web201: 2, db210: 3, math120: 4 },
   assignments: { helloWorld: 1, loops: 2, functionsQuiz: 3, homepage: 4, logic: 8 },
   submissions: { helloWorldGraded: 1, loopsUngraded: 2 },
@@ -26,8 +29,10 @@ export const IDS = {
 let server;
 let baseUrl;
 
-// Reset the test database to the demo data and start the server on a random free port (0 = "any").
+// Bring the test database up to date (migrations), reset it to the demo data,
+// and start the server on a random free port (0 = "any").
 export async function startTestServer() {
+  await runMigrations({ log: () => {} });
   await seedDemoData({ log: () => {} });
   server = app.listen(0);
   await once(server, 'listening');
@@ -63,7 +68,7 @@ export async function request(path, { method = 'GET', cookie, json, form } = {})
 // Log in and return the session cookie, to pass as { cookie } in later requests.
 export async function login({ email, password }) {
   const response = await request('/api/auth/login', { method: 'POST', json: { email, password } });
-  if (response.status !== 200) throw new Error(`Login failed for ${email}`);
+  if (response.status !== 200) throw new Error(`Login failed for ${email} (status ${response.status})`);
   return response.headers.get('set-cookie').split(';')[0];
 }
 

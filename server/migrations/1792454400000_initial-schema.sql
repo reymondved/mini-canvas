@@ -1,5 +1,8 @@
--- Table definitions for Mini Canvas.
--- "IF NOT EXISTS" makes this safe to run more than once.
+-- Migration 1: the tables from Phases 3–5.
+-- "IF NOT EXISTS" lets this run on a database that already has these tables
+-- (from before we used migrations): it then changes nothing, and is just recorded as done.
+
+-- Up Migration
 
 -- Every person who can log in. role decides what they can do.
 CREATE TABLE IF NOT EXISTS users (
@@ -62,3 +65,13 @@ CREATE TABLE IF NOT EXISTS session (
   expire TIMESTAMP(6) NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_session_expire ON session (expire);
+
+-- Down Migration
+-- Undo = remove the tables, in reverse order (a table must go before the tables it points at).
+-- WARNING: this deletes all the data in them.
+DROP TABLE session;
+DROP TABLE submissions;
+DROP TABLE assignments;
+DROP TABLE enrollments;
+DROP TABLE courses;
+DROP TABLE users;

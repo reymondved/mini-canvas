@@ -28,6 +28,8 @@
 - [x] **Phase 3** – PostgreSQL database, real authentication, student and instructor roles
 - [x] **Phase 4** – Student dashboard and course pages with assignments
 - [x] **Phase 5** – Assignment submission, grading, and a grades page
+- [x] **Extra** – Automated API tests (Vitest)
+- [x] **Extra** – Admin role: manage users and courses, temporary passwords, database migrations
 
 ## Folder structure
 
@@ -39,8 +41,10 @@ Mini Canvas/
 │   ├── .env.example     Template for secret settings (copy to .env)
 │   ├── .env.test.example Template for test settings (copy to .env.test)
 │   ├── vitest.config.js Test settings
+│   ├── migrations/      Numbered SQL files that create and change the tables (node-pg-migrate)
 │   ├── db/
-│   │   ├── schema.sql   Table definitions
+│   │   ├── runMigrations.js  Runs the migrations (used by db:migrate and the tests)
+│   │   ├── migrate.js   "npm run db:migrate" / "npm run db:rollback"
 │   │   ├── demoData.js  The fake demo data + seedDemoData() (used by seed and tests)
 │   │   └── seed.js      "npm run db:seed": resets the database to the demo data
 │   ├── test/            Automated API tests (Vitest)
@@ -52,7 +56,7 @@ Mini Canvas/
 │       ├── access.js    The one rule for "may this user open this course?"
 │       ├── uploads.js   File upload settings (size, types, random names)
 │       ├── middleware/  Checks that run before routes (logged in, role)
-│       └── routes/      API endpoints (auth, courses, assignments, submissions, grades)
+│       └── routes/      API endpoints (auth, courses, assignments, submissions, grades, admin)
 └── client/              React app (the part you see in the browser)
     ├── index.html
     ├── package.json
@@ -63,8 +67,9 @@ Mini Canvas/
         ├── App.jsx      Routes: which URL shows which page
         ├── styles.css   Colors and layout
         ├── format.js    Shared helpers for dates, file sizes and statuses
+        ├── api.js       Small helper for sending requests to the server
         ├── auth/        Shared "who is logged in" state (React Context)
-        ├── components/  Reusable pieces (demo banner, header, RequireAuth)
+        ├── components/  Reusable pieces (demo banner, header, RequireAuth, RequireRole, CourseForm)
         └── pages/       One file per screen
 ```
 
@@ -82,15 +87,24 @@ Requires [Node.js](https://nodejs.org) (LTS) and [PostgreSQL](https://www.postgr
    CREATE DATABASE mini_canvas OWNER mini_canvas_app;
    ```
 
-3. Create the tables and demo data:
+3. Create the tables, then the demo data:
 
    ```bash
    cd server
    npm install
+   npm run db:migrate
    npm run db:seed
    ```
 
-   You can run `npm run db:seed` again any time. It **resets** courses, assignments, submissions and uploaded files to the demo data, so anything added since is removed.
+   You can run `npm run db:seed` again any time. It **resets everything** (users, courses, assignments, submissions, uploaded files and logins) to the demo data, so anything added since is removed.
+
+**Database changes (migrations)**
+
+Tables are never changed by hand. Each change is a numbered SQL file in `server/migrations/` with an `-- Up Migration` part (make the change) and a `-- Down Migration` part (undo it). node-pg-migrate records which files have run in the `pgmigrations` table.
+
+- `npm run db:migrate` applies new migrations. Run it after pulling changes that add one.
+- `npm run db:rollback` undoes the most recent migration. **Careful:** this can delete data.
+- Never edit a migration that has already run. Add a new one instead.
 
 **1. Server**
 
@@ -140,6 +154,7 @@ Run them before every commit. If one fails, read its name: it tells you which ru
 | Student | student@demo.test | Student123! |
 | Instructor | instructor@demo.test | Instructor123! |
 | Instructor | instructor2@demo.test | Instructor123! |
+| Admin | admin@demo.test | Admin123! |
 
 The demo student is enrolled in CS 101, WEB 201 and DB 210, but **not** MATH 120 (taught by instructor2). Use that to test that users can only open their own courses.
 
@@ -152,6 +167,14 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 - Instructors grade on each assignment's page: a whole-number score from 0 to the assignment's points, plus optional feedback. Grades can be updated.
 - The Grades page totals only count graded assignments.
 
+## Admin rules
+
+- Admins create users. The server makes a random **temporary password**, shown to the admin **once**. The new user must change it at their first login; until then, the server blocks everything else.
+- Users are **deactivated, never deleted**. A deactivated user is logged out immediately and can't log in. Admins can't deactivate themselves. A user's role can't be changed after creation.
+- Admins create and edit courses and enroll or remove students. Removing a student **keeps** their submissions and grades. Courses can't be deleted.
+- Admins **don't** automatically see inside courses (assignments, files, grades). That's least privilege: they only get what managing accounts needs.
+- Every user can change their own password from the header.
+
 ## API endpoints
 
 | Method | Path | Who | What it does |
@@ -159,6 +182,7 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | POST | `/api/auth/login` | Anyone | Checks email + password, starts a session |
 | POST | `/api/auth/logout` | Anyone | Ends the session |
 | GET | `/api/auth/me` | Logged in | Returns the logged-in user, or 401 |
+| POST | `/api/auth/change-password` | Logged in (also with a temporary password) | `{ currentPassword, newPassword }` |
 | GET | `/api/courses` | Anyone | Public course catalog |
 | GET | `/api/courses/mine` | Logged in | Student: enrolled courses. Instructor: courses they teach |
 | GET | `/api/courses/:id` | Enrolled student or the course's instructor | Course with its assignments (404 otherwise) |
@@ -167,3 +191,8 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | GET | `/api/submissions/:id/file` | That student or the course's instructor | Download the submitted file |
 | PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
 | GET | `/api/grades` | **Student** | All my assignments and scores, by course |
+| GET / POST | `/api/admin/users` | **Admin** | List users / create one (returns a one-time temporary password) |
+| PATCH | `/api/admin/users/:id` | **Admin** | `{ isActive }`: deactivate or reactivate |
+| GET / POST | `/api/admin/courses` | **Admin** | List courses / create one |
+| GET / PUT | `/api/admin/courses/:id` | **Admin** | Course with its students / edit it |
+| PUT / DELETE | `/api/admin/courses/:id/students/:userId` | **Admin** | Enroll / remove a student |

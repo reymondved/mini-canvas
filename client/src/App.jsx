@@ -9,6 +9,11 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import CoursePage from './pages/CoursePage.jsx';
 import AssignmentPage from './pages/AssignmentPage.jsx';
 import GradesPage from './pages/GradesPage.jsx';
+import ChangePasswordPage from './pages/ChangePasswordPage.jsx';
+import RequireRole from './components/RequireRole.jsx';
+import AdminUsersPage from './pages/AdminUsersPage.jsx';
+import AdminCoursesPage from './pages/AdminCoursesPage.jsx';
+import AdminCoursePage from './pages/AdminCoursePage.jsx';
 
 // Each <Route> says: "when the URL is this path, show this page".
 export default function App() {
@@ -28,6 +33,14 @@ export default function App() {
           <Route path="/courses/:id" element={<CoursePage />} />
           <Route path="/assignments/:id" element={<AssignmentPage />} />
           <Route path="/grades" element={<GradesPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+
+          {/* Pages inside here are for admins only */}
+          <Route element={<RequireRole role="admin" />}>
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/courses" element={<AdminCoursesPage />} />
+            <Route path="/admin/courses/:id" element={<AdminCoursePage />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />
