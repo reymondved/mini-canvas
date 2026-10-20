@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ChevronRight, ListTodo } from 'lucide-react';
 import { api } from '../api.js';
 import { formatDate, formatRelative } from '../format.js';
 
-// The student's to-do list on the dashboard: missing work first, then what's due soon.
+function isToday(isoString) {
+  return new Date(isoString).toDateString() === new Date().toDateString();
+}
+
+// The student's to-do list on the dashboard: missing work first, then what's due in the next days.
 // The server decides what goes in each list (GET /api/upcoming).
 export default function UpcomingList() {
   const [data, setData] = useState(null); // { days, missing, upcoming }
@@ -15,47 +20,63 @@ export default function UpcomingList() {
       .catch((err) => setError(err.message));
   }, []);
 
-  if (error) return <p className="alert-error" role="alert">{error}</p>;
-  if (!data) return <p className="muted">Loading your to-do list…</p>;
-
   return (
-    <section className="upcoming" aria-label="To do">
-      {data.missing.length > 0 && (
-        <div className="card upcoming-group upcoming-missing">
-          <h2>Missing ({data.missing.length})</h2>
-          <ul>
-            {data.missing.map((a) => (
-              <UpcomingItem key={a.id} assignment={a} label="was due" />
-            ))}
-          </ul>
-        </div>
+    <section className="card">
+      <div className="card-header">
+        <h2>
+          <ListTodo size={22} aria-hidden="true" />
+          Upcoming tasks
+        </h2>
+        <Link to="/grades" className="small">See all</Link>
+      </div>
+
+      {error && <p className="alert-error" role="alert">{error}</p>}
+      {!data && !error && <p className="muted">Loading…</p>}
+
+      {data && data.missing.length === 0 && data.upcoming.length === 0 && (
+        <p className="muted">Nothing due in the next {data.days} days. 🎉</p>
       )}
 
-      <div className="card upcoming-group">
-        <h2>Coming up</h2>
-        {data.upcoming.length === 0 ? (
-          <p className="muted">Nothing due in the next {data.days} days. 🎉</p>
-        ) : (
-          <ul>
-            {data.upcoming.map((a) => (
-              <UpcomingItem key={a.id} assignment={a} label="due" />
-            ))}
-          </ul>
-        )}
-      </div>
+      {data && (
+        <ul className="task-list">
+          {data.missing.map((a) => (
+            <Task key={a.id} assignment={a} tag={<span className="tag tag-past">Missing</span>} />
+          ))}
+          {data.upcoming.map((a) => (
+            <Task
+              key={a.id}
+              assignment={a}
+              tag={
+                isToday(a.due_at) ? (
+                  <span className="tag tag-late">Due today</span>
+                ) : (
+                  <span className="tag">Due {formatRelative(a.due_at)}</span>
+                )
+              }
+            />
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
 
-function UpcomingItem({ assignment: a, label }) {
+function Task({ assignment: a, tag }) {
+  const due = new Date(a.due_at);
   return (
     <li>
-      <Link to={`/assignments/${a.id}`}>{a.title}</Link>
-      <span className="course-code">{a.course_code}</span>
-      {/* title= shows the exact date when you hover over "in 2 days" */}
-      <span className="muted small" title={formatDate(a.due_at)}>
-        {label} {formatRelative(a.due_at)}
-      </span>
+      <Link to={`/assignments/${a.id}`} className="task" title={`Due ${formatDate(a.due_at)}`}>
+        <span className="date-badge" aria-hidden="true">
+          <span>{due.toLocaleDateString(undefined, { month: 'short' })}</span>
+          <strong>{due.getDate()}</strong>
+        </span>
+        <span className="task-text">
+          <span className="task-title">{a.title}</span>
+          <span className="muted">{a.course_code}</span>
+          {tag}
+        </span>
+        <ChevronRight size={18} className="task-arrow" aria-hidden="true" />
+      </Link>
     </li>
   );
 }

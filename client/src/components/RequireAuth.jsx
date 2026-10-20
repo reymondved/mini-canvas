@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
-import AppHeader from './AppHeader.jsx';
+import AppShell from './AppShell.jsx';
 
 // Wraps every page that needs a login. Not logged in → go to the login page.
 // This only improves the experience: the real protection is the server's requireLogin check.
@@ -21,9 +21,8 @@ export default function RequireAuth() {
 
   // <Outlet /> is where the matching child page (dashboard, course...) appears.
   return (
-    <>
-      <AppHeader />
+    <AppShell>
       <Outlet />
-    </>
+    </AppShell>
   );
 }

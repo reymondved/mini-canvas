@@ -1,8 +1,7 @@
-# Mini Canvas — HAU LMS Demo
+# Eng Academy: a learning platform demo
 
-> **Demo – not the official HAU system.**
-> This is a private practice/portfolio project inspired by a school learning management system.
-> It is not affiliated with or endorsed by Holy Angel University.
+> **Demo project.** A private practice/portfolio project: a small learning management system
+> for courses, assignments, submissions and grades. It uses fake data only and is not an official school system.
 
 ## Project rules
 
@@ -16,7 +15,7 @@
 
 | Part | Technology |
 |---|---|
-| Frontend | React + Vite (JavaScript, plain CSS) |
+| Frontend | React + Vite (JavaScript, plain CSS), lucide-react icons, Inter font |
 | Backend | Node.js + Express |
 | Database | PostgreSQL 18 (plain SQL with the `pg` package) |
 | Login persistence | Sessions with cookies, stored in PostgreSQL |
@@ -32,6 +31,8 @@
 - [x] **Extra** – Admin role: manage users and courses, temporary passwords, database migrations
 - [x] **Extra** – Instructors create and edit assignments
 - [x] **Extra** – "Missing" and "Coming up" lists on the student dashboard
+- [x] **Extra** – Redesign as **Eng Academy**: sidebar layout, new dashboard, blue design system
+- [ ] **Later** – Announcements, study activity, class schedule, resources, search, messages, notifications (shown as "Coming soon" for now)
 
 ## Folder structure
 
@@ -63,17 +64,25 @@ Mini Canvas/
     ├── index.html
     ├── package.json
     ├── vite.config.js
-    ├── public/          Static files (logo)
+    ├── public/          Static files (logo.svg)
     └── src/
         ├── main.jsx     App starting point
         ├── App.jsx      Routes: which URL shows which page
-        ├── styles.css   Colors and layout
+        ├── styles.css   The design system: colors, layout, components
         ├── format.js    Shared helpers for dates, file sizes and statuses
         ├── api.js       Small helper for sending requests to the server
         ├── auth/        Shared "who is logged in" state (React Context)
-        ├── components/  Reusable pieces (demo banner, header, RequireAuth, RequireRole, CourseForm)
+        ├── components/  Reusable pieces (AppShell sidebar layout, cards, calendar, forms, RequireAuth...)
         └── pages/       One file per screen
 ```
+
+## Design
+
+- **Colors, sizes and shadows** are CSS variables at the top of `client/src/styles.css`. Change `--primary` and the whole app changes.
+- **Layout:** a sidebar on desktop that becomes a slide-out menu (☰) on screens narrower than 900px.
+- **Icons** come from [lucide-react](https://lucide.dev). The **Inter** font is bundled with the app (no outside requests).
+- **Placeholders:** features that don't exist yet (announcements, study activity, schedule, search...) appear as **"Coming soon"** and never show made-up numbers.
+- The logo and illustrations are our own simple SVG drawings.
 
 ## Running the app
 
