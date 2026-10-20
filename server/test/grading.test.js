@@ -23,16 +23,16 @@ beforeAll(async () => {
 });
 afterAll(stopTestServer);
 
-// "Loops Practice" is worth 20 points and is waiting for a grade.
-const gradeUrl = `/api/submissions/${IDS.submissions.loopsUngraded}/grade`;
+// "Kirchhoff's Laws Lab Report" is worth 20 points and is waiting for a grade.
+const gradeUrl = `/api/submissions/${IDS.submissions.kirchhoffUngraded}/grade`;
 
 describe('who may grade', () => {
-  test('a student CANNOT grade (instructors only) → 403', async () => {
+  test('a student CANNOT grade (instructors only) â†’ 403', async () => {
     const res = await request(gradeUrl, { method: 'PUT', cookie: student, json: { score: 20 } });
     expect(res.status).toBe(403);
   });
 
-  test("an instructor CANNOT grade another instructor's course → 404", async () => {
+  test("an instructor CANNOT grade another instructor's course â†’ 404", async () => {
     const res = await request(gradeUrl, { method: 'PUT', cookie: instructor2, json: { score: 20 } });
     expect(res.status).toBe(404);
   });
@@ -65,20 +65,20 @@ describe('grading flow', () => {
     const graded = await request(gradeUrl, {
       method: 'PUT',
       cookie: instructor,
-      json: { score: 18, feedback: 'Good loop!' },
+      json: { score: 18, feedback: 'Clear measurements!' },
     });
     expect(graded.status).toBe(200);
     expect(graded.body.submission.score).toBe(18);
 
     const grades = await request('/api/grades', { cookie: student });
-    const cs101 = grades.body.courses.find((c) => c.code === 'CS 101');
-    const loops = cs101.assignments.find((a) => a.title === 'Loops Practice');
-    expect(loops.score).toBe(18);
-    expect(loops.feedback).toBe('Good loop!');
+    const ee101 = grades.body.courses.find((c) => c.code === 'EE 101');
+    const kirchhoffLab = ee101.assignments.find((a) => a.title === "Kirchhoff's Laws Lab Report");
+    expect(kirchhoffLab.score).toBe(18);
+    expect(kirchhoffLab.feedback).toBe('Clear measurements!');
   });
 
   test('once graded, the student can no longer replace the file', async () => {
-    const res = await request(`/api/assignments/${IDS.assignments.loops}/submission`, {
+    const res = await request(`/api/assignments/${IDS.assignments.kirchhoffLab}/submission`, {
       method: 'PUT',
       cookie: student,
       form: fileForm('change.txt', 'late change', 'text/plain'),
@@ -95,6 +95,6 @@ describe('grades page', () => {
 
   test("lists only the student's own courses", async () => {
     const res = await request('/api/grades', { cookie: student });
-    expect(res.body.courses.map((c) => c.code)).toEqual(['CS 101', 'DB 210', 'WEB 201']);
+    expect(res.body.courses.map((c) => c.code)).toEqual(['CPE 201', 'ECE 210', 'EE 101']);
   });
 });

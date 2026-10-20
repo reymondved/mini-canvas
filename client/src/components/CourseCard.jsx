@@ -1,8 +1,18 @@
 import { Link } from 'react-router';
-import { BookOpen, Code2, Database, Globe, Palette, Sigma } from 'lucide-react';
+import { AudioWaveform, BookOpen, Code2, Cpu, Database, DraftingCompass, Globe, Palette, Sigma, Zap } from 'lucide-react';
 
-// Pick an icon from the course code: "CS 101" → code, "DB 210" → database, ...
-const ICONS = { CS: Code2, WEB: Globe, DB: Database, MATH: Sigma, ART: Palette };
+// Pick an icon from the course code: "EE 101" → lightning bolt, "CPE 201" → chip, ...
+const ICONS = {
+  EE: Zap, // electrical engineering
+  CPE: Cpu, // computer engineering
+  ECE: AudioWaveform, // electronics / signals
+  ENGR: DraftingCompass, // general engineering, drawing
+  MATH: Sigma,
+  CS: Code2,
+  WEB: Globe,
+  DB: Database,
+  ART: Palette,
+};
 
 function courseIcon(code) {
   return ICONS[code.split(' ')[0].toUpperCase()] ?? BookOpen;

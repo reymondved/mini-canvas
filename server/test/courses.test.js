@@ -28,7 +28,7 @@ describe('course catalog', () => {
   test('anyone can browse all courses', async () => {
     const res = await request('/api/courses');
     expect(res.status).toBe(200);
-    expect(codes(res)).toEqual(['CS 101', 'DB 210', 'MATH 120', 'WEB 201']);
+    expect(codes(res)).toEqual(['CPE 201', 'ECE 210', 'EE 101', 'MATH 120']);
   });
 });
 
@@ -40,11 +40,11 @@ describe('my courses', () => {
 
   test('a student sees only the courses they are enrolled in', async () => {
     const res = await request('/api/courses/mine', { cookie: student });
-    expect(codes(res)).toEqual(['CS 101', 'DB 210', 'WEB 201']);
+    expect(codes(res)).toEqual(['CPE 201', 'ECE 210', 'EE 101']);
   });
 
   test('an instructor sees only the courses they teach', async () => {
-    expect(codes(await request('/api/courses/mine', { cookie: instructor }))).toEqual(['CS 101', 'DB 210', 'WEB 201']);
+    expect(codes(await request('/api/courses/mine', { cookie: instructor }))).toEqual(['CPE 201', 'ECE 210', 'EE 101']);
     expect(codes(await request('/api/courses/mine', { cookie: instructor2 }))).toEqual(['MATH 120']);
   });
 });
@@ -52,22 +52,22 @@ describe('my courses', () => {
 describe('progress numbers for the dashboard', () => {
   test("a student sees how many of each course's assignments they submitted", async () => {
     const res = await request('/api/courses/mine', { cookie: student });
-    const cs101 = res.body.courses.find((c) => c.code === 'CS 101');
-    // CS 101 has 3 assignments; the demo student submitted 2 (Hello, World and Loops Practice).
-    expect(cs101).toMatchObject({ assignment_count: 3, submitted_count: 2 });
+    const ee101 = res.body.courses.find((c) => c.code === 'EE 101');
+    // EE 101 has 3 assignments; the demo student submitted 2 (Ohm's Law Problem Set and Kirchhoff's Laws Lab Report).
+    expect(ee101).toMatchObject({ assignment_count: 3, submitted_count: 2 });
   });
 
   test('an instructor sees how many submissions are waiting for a grade', async () => {
     const res = await request('/api/courses/mine', { cookie: instructor });
-    const cs101 = res.body.courses.find((c) => c.code === 'CS 101');
-    // Loops Practice is submitted but not graded yet.
-    expect(cs101).toMatchObject({ assignment_count: 3, to_grade_count: 1 });
+    const ee101 = res.body.courses.find((c) => c.code === 'EE 101');
+    // Kirchhoff's Laws Lab Report is submitted but not graded yet.
+    expect(ee101).toMatchObject({ assignment_count: 3, to_grade_count: 1 });
   });
 });
 
 describe('opening one course (authorization)', () => {
   test('an enrolled student can open it and see its assignments', async () => {
-    const res = await request(`/api/courses/${IDS.courses.cs101}`, { cookie: student });
+    const res = await request(`/api/courses/${IDS.courses.ee101}`, { cookie: student });
     expect(res.status).toBe(200);
     expect(res.body.assignments).toHaveLength(3);
   });
@@ -78,7 +78,7 @@ describe('opening one course (authorization)', () => {
   });
 
   test("an instructor CANNOT open another instructor's course", async () => {
-    const res = await request(`/api/courses/${IDS.courses.cs101}`, { cookie: instructor2 });
+    const res = await request(`/api/courses/${IDS.courses.ee101}`, { cookie: instructor2 });
     expect(res.status).toBe(404);
   });
 

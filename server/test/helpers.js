@@ -21,9 +21,9 @@ export const ADMIN = { email: 'admin@demo.test', password: 'Admin123!' };
 // Ids of the demo data. They're always the same because the seed restarts the counters.
 export const IDS = {
   users: { student: 1, instructor: 2, instructor2: 3, admin: 4 },
-  courses: { cs101: 1, web201: 2, db210: 3, math120: 4 },
-  assignments: { helloWorld: 1, loops: 2, functionsQuiz: 3, homepage: 4, htmlQuiz: 6, designSchema: 7, logic: 9 },
-  submissions: { helloWorldGraded: 1, loopsUngraded: 2 },
+  courses: { ee101: 1, cpe201: 2, ece210: 3, math120: 4 },
+  assignments: { ohmsLaw: 1, kirchhoffLab: 2, theveninQuiz: 3, logicGates: 4, booleanQuiz: 6, fourier: 7, odeWorksheet: 9 },
+  submissions: { ohmsLawGraded: 1, kirchhoffUngraded: 2 },
 };
 
 let server;

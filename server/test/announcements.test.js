@@ -25,10 +25,10 @@ beforeAll(async () => {
 });
 afterAll(stopTestServer);
 
-// The seed's announcements, oldest first: 1 site-wide (admin), 2 CS 101, 3 WEB 201, 4 MATH 120 (instructor2).
-const SEEDED = { siteWide: 1, cs101: 2, math120: 4 };
+// The seed's announcements, oldest first: 1 site-wide (admin), 2 EE 101, 3 CPE 201, 4 MATH 120 (instructor2).
+const SEEDED = { siteWide: 1, ee101: 2, math120: 4 };
 const titles = (res) => res.body.announcements.map((a) => a.title);
-const courseUrl = `/api/courses/${IDS.courses.cs101}/announcements`;
+const courseUrl = `/api/courses/${IDS.courses.ee101}/announcements`;
 const post = { title: 'Bring your laptop', body: 'We code together on Monday.' };
 
 describe('who sees which announcements', () => {
@@ -40,7 +40,7 @@ describe('who sees which announcements', () => {
     const res = await request('/api/announcements', { cookie: student });
     expect(titles(res)).toEqual([
       'Lab moved to Thursday',
-      'CS 101 midterm: Oct 27, 9:00–11:00',
+      'EE 101 midterm: Oct 27, 9:00–11:00',
       'Midterm exam week: Oct 26–30',
     ]);
   });
@@ -83,7 +83,7 @@ describe('posting to a course', () => {
   test("the course's instructor posts, and enrolled students see it", async () => {
     const res = await request(courseUrl, { method: 'POST', cookie: instructor, json: post });
     expect(res.status).toBe(201);
-    expect(res.body.announcement).toMatchObject({ title: 'Bring your laptop', course_code: 'CS 101' });
+    expect(res.body.announcement).toMatchObject({ title: 'Bring your laptop', course_code: 'EE 101' });
 
     const forStudent = await request('/api/announcements', { cookie: student });
     expect(titles(forStudent)[0]).toBe('Bring your laptop');
@@ -124,8 +124,8 @@ describe('site-wide announcements', () => {
 });
 
 describe('editing and deleting', () => {
-  const editUrl = `/api/announcements/${SEEDED.cs101}`;
-  const changed = { title: 'CS 101 midterm: ROOM CHANGED to 305', body: 'Same time, new room: 305.' };
+  const editUrl = `/api/announcements/${SEEDED.ee101}`;
+  const changed = { title: 'EE 101 midterm: ROOM CHANGED to 305', body: 'Same time, new room: 305.' };
 
   test.each([
     ['a student', () => student],
@@ -139,7 +139,7 @@ describe('editing and deleting', () => {
   test('the author edits it, and it is marked as edited', async () => {
     const res = await request(editUrl, { method: 'PUT', cookie: instructor, json: changed });
     expect(res.status).toBe(200);
-    expect(res.body.announcement.title).toBe('CS 101 midterm: ROOM CHANGED to 305');
+    expect(res.body.announcement.title).toBe('EE 101 midterm: ROOM CHANGED to 305');
     expect(res.body.announcement.edited_at).not.toBeNull();
   });
 

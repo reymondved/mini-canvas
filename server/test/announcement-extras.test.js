@@ -26,8 +26,8 @@ beforeAll(async () => {
 });
 afterAll(stopTestServer);
 
-// Seeded: 1 site-wide, 2 CS 101 midterm (1 file + 2 replies), 3 WEB 201, 4 MATH 120 (student not enrolled).
-const A = { siteWide: 1, cs101: 2, math120: 4 };
+// Seeded: 1 site-wide, 2 EE 101 midterm (1 file + 2 replies), 3 CPE 201, 4 MATH 120 (student not enrolled).
+const A = { siteWide: 1, ee101: 2, math120: 4 };
 const SEEDED_FILE = 1;
 const SEEDED_REPLY = { byStudent: 1, byInstructor: 2 };
 
@@ -49,22 +49,22 @@ function announcementForm(title, body, files = []) {
 
 describe('opening one announcement', () => {
   test('people who may see it get the full announcement', async () => {
-    const res = await request(`/api/announcements/${A.cs101}`, { cookie: student });
+    const res = await request(`/api/announcements/${A.ee101}`, { cookie: student });
     expect(res.status).toBe(200);
-    expect(res.body.announcement).toMatchObject({ id: A.cs101, course_code: 'CS 101', is_read: false });
+    expect(res.body.announcement).toMatchObject({ id: A.ee101, course_code: 'EE 101', is_read: false });
   });
 
   test("everyone else gets 404, even if they guess the number", async () => {
     expect((await request(`/api/announcements/${A.math120}`, { cookie: student })).status).toBe(404);
-    expect((await request(`/api/announcements/${A.cs101}`, { cookie: admin })).status).toBe(404);
+    expect((await request(`/api/announcements/${A.ee101}`, { cookie: admin })).status).toBe(404);
     expect((await request('/api/announcements/abc', { cookie: student })).status).toBe(404);
   });
 });
 
 describe('read and unread (each person has their own)', () => {
   test('new announcements start unread, but your own posts are already read', async () => {
-    expect((await myAnnouncement(student, A.cs101)).is_read).toBe(false);
-    expect((await myAnnouncement(instructor, A.cs101)).is_read).toBe(true);
+    expect((await myAnnouncement(student, A.ee101)).is_read).toBe(false);
+    expect((await myAnnouncement(instructor, A.ee101)).is_read).toBe(true);
   });
 
   test('marking as read only changes it for ME', async () => {
@@ -84,21 +84,21 @@ describe('read and unread (each person has their own)', () => {
   test("you can't mark an announcement you can't see", async () => {
     const res = await request(`/api/announcements/${A.math120}/read`, { method: 'PUT', cookie: student });
     expect(res.status).toBe(404);
-    expect((await request(`/api/announcements/${A.cs101}/read`, { method: 'PUT' })).status).toBe(401);
+    expect((await request(`/api/announcements/${A.ee101}/read`, { method: 'PUT' })).status).toBe(401);
   });
 });
 
 describe('replies', () => {
-  const url = `/api/announcements/${A.cs101}/replies`;
+  const url = `/api/announcements/${A.ee101}/replies`;
 
   test('everyone in the course sees the replies, oldest first, with who wrote them', async () => {
     const res = await request(url, { cookie: student });
     expect(res.status).toBe(200);
     expect(res.body.replies.map((r) => [r.author_role, r.body])).toEqual([
       ['student', 'Is it open notes?'],
-      ['instructor', 'No, closed notes. You may bring one index card.'],
+      ['instructor', 'No, closed notes. You may bring one formula sheet.'],
     ]);
-    expect((await myAnnouncement(student, A.cs101)).reply_count).toBe(2);
+    expect((await myAnnouncement(student, A.ee101)).reply_count).toBe(2);
   });
 
   test("people outside the course can't read or post replies", async () => {
@@ -156,10 +156,10 @@ describe('replies', () => {
 });
 
 describe('attached files', () => {
-  const courseUrl = `/api/courses/${IDS.courses.cs101}/announcements`;
+  const courseUrl = `/api/courses/${IDS.courses.ee101}/announcements`;
 
   test("files are listed with the announcement, without their secret disk name", async () => {
-    const a = await myAnnouncement(student, A.cs101);
+    const a = await myAnnouncement(student, A.ee101);
     expect(a.files).toEqual([{ id: SEEDED_FILE, file_name: 'midterm-coverage.txt', file_size: expect.any(Number) }]);
   });
 
@@ -168,7 +168,7 @@ describe('attached files', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-disposition')).toMatch(/^attachment/);
     expect(res.headers.get('x-content-type-options')).toBe('nosniff');
-    expect(res.body).toContain('Loops');
+    expect(res.body).toContain('Kirchhoff');
   });
 
   test("people outside the course can't download it", async () => {
@@ -221,7 +221,7 @@ describe('attached files', () => {
     const res = await request('/api/admin/announcements', {
       method: 'POST',
       cookie: admin,
-      form: announcementForm('Exam schedule', 'Attached.', [['schedule.txt', 'Mon: CS 101', 'text/plain']]),
+      form: announcementForm('Exam schedule', 'Attached.', [['schedule.txt', 'Mon: EE 101', 'text/plain']]),
     });
     expect(res.status).toBe(201);
     expect(res.body.announcement.files).toHaveLength(1);
@@ -229,7 +229,7 @@ describe('attached files', () => {
 
   test('deleting an announcement also deletes its files from disk', async () => {
     const before = await countUploadedFiles();
-    const res = await request(`/api/announcements/${A.cs101}`, { method: 'DELETE', cookie: instructor });
+    const res = await request(`/api/announcements/${A.ee101}`, { method: 'DELETE', cookie: instructor });
     expect(res.status).toBe(204);
     expect(await countUploadedFiles()).toBe(before - 1);
   });
