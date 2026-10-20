@@ -528,3 +528,136 @@ a {
   .grades-table th:nth-child(3) { width: 30%; }
   .grades-table th:nth-child(4) { width: 22%; }
 }
+
+/* ---------- Admin pages ---------- */
+.page.narrow {
+  max-width: 520px;
+}
+
+.admin-section {
+  margin-bottom: 1.25rem;
+}
+
+.field select {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+/* Form fields side by side on wide screens, stacked on phones */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0 1rem;
+  align-items: end;
+}
+
+.form-grid-action {
+  margin-bottom: 1rem;
+}
+
+.btn-small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  background: var(--white);
+  color: var(--maroon);
+  border: 1px solid var(--maroon);
+}
+
+.btn-small:hover {
+  background: var(--bg);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--gray-light);
+  vertical-align: middle;
+}
+
+.admin-table th {
+  color: var(--gray);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-table td .tag {
+  margin-right: 0.35rem;
+}
+
+.row-inactive td {
+  color: var(--gray);
+}
+
+.temp-password {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0;
+}
+
+.temp-password code {
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+  background: var(--white);
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  border: 1px dashed var(--maroon);
+}
+
+.enroll-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.enroll-form select {
+  flex: 1 1 240px;
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.student-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.student-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.student-list .tag {
+  margin-left: 0.5rem;
+}
+
+/* Hidden on screen but still read out by screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

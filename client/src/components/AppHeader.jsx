@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 export default function AppHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user.role === 'admin';
 
   async function handleLogout() {
     await logout();
@@ -13,14 +14,22 @@ export default function AppHeader() {
 
   return (
     <header className="app-header">
-      <Link to="/dashboard" className="app-brand">
+      <Link to={isAdmin ? '/admin/users' : '/dashboard'} className="app-brand">
         <img src="/hau-logo.webp" alt="" />
         <span>Mini Canvas</span>
       </Link>
       {/* NavLink adds an "active" class to the link for the page you're on */}
       <nav className="app-nav">
-        <NavLink to="/dashboard">Dashboard</NavLink>
+        {isAdmin ? (
+          <>
+            <NavLink to="/admin/users">Users</NavLink>
+            <NavLink to="/admin/courses">Courses</NavLink>
+          </>
+        ) : (
+          <NavLink to="/dashboard">Dashboard</NavLink>
+        )}
         {user.role === 'student' && <NavLink to="/grades">Grades</NavLink>}
+        <NavLink to="/change-password">Password</NavLink>
       </nav>
       <div className="app-user">
         <span className="app-user-name">
