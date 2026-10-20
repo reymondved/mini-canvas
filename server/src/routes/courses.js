@@ -4,6 +4,7 @@ import { requireLogin } from '../middleware/requireLogin.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { findAccessibleCourse, findTaughtCourse, isValidId } from '../access.js';
 import { checkAssignmentInput } from '../assignmentInput.js';
+import { ANNOUNCEMENT_SELECT, checkAnnouncementInput, createAnnouncement } from '../announcementData.js';
 
 const router = Router();
 
@@ -89,6 +90,31 @@ router.post('/:id/assignments', requireLogin, requireRole('instructor'), async (
     [course.id, ...values]
   );
   res.status(201).json({ assignment: result.rows[0] });
+});
+
+// GET /api/courses/:id/announcements — one course's announcements, for anyone who may open the course.
+router.get('/:id/announcements', requireLogin, async (req, res) => {
+  const course = isValidId(req.params.id) && (await findAccessibleCourse(req.params.id, req.user.id));
+  if (!course) {
+    return res.status(404).json({ error: 'Course not found.' });
+  }
+  const result = await pool.query(`${ANNOUNCEMENT_SELECT} WHERE an.course_id = $1 ORDER BY an.created_at DESC`, [
+    course.id,
+  ]);
+  res.json({ announcements: result.rows });
+});
+
+// POST /api/courses/:id/announcements — post to a course. Only the instructor who TEACHES it.
+router.post('/:id/announcements', requireLogin, requireRole('instructor'), async (req, res) => {
+  const course = isValidId(req.params.id) && (await findTaughtCourse(req.params.id, req.user.id));
+  if (!course) {
+    return res.status(404).json({ error: 'Course not found.' });
+  }
+  const { error, values } = checkAnnouncementInput(req.body);
+  if (error) {
+    return res.status(400).json({ error });
+  }
+  res.status(201).json({ announcement: await createAnnouncement(course.id, req.user.id, values) });
 });
 
 export default router;

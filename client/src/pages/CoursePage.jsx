@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { formatDate, submissionStatus } from '../format.js';
 import { api } from '../api.js';
 import AssignmentForm from '../components/AssignmentForm.jsx';
+import AnnouncementsPanel from '../components/AnnouncementsPanel.jsx';
 
 export default function CoursePage() {
   const { user } = useAuth();
@@ -59,6 +60,14 @@ export default function CoursePage() {
         <h1>{course.title}</h1>
         <p className="muted">{course.description} · {course.instructor_name}</p>
       </header>
+
+      {/* Only this course's instructor ever gets this page as an instructor, so they may post here */}
+      <div className="page-section">
+        <AnnouncementsPanel
+          loadUrl={`/api/courses/${id}/announcements`}
+          postUrl={user.role === 'instructor' ? `/api/courses/${id}/announcements` : undefined}
+        />
+      </div>
 
       <div className="section-header">
         <h2>Assignments</h2>

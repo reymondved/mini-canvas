@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router';
-import { Activity, BookOpen, ClipboardCheck, Megaphone, Mountain } from 'lucide-react';
+import { Activity, BookOpen, ClipboardCheck, Mountain } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api } from '../api.js';
 import Illustration from '../components/Illustration.jsx';
@@ -8,6 +8,7 @@ import ComingSoon from '../components/ComingSoon.jsx';
 import CourseCard from '../components/CourseCard.jsx';
 import DeadlineCalendar from '../components/DeadlineCalendar.jsx';
 import UpcomingList from '../components/UpcomingList.jsx';
+import AnnouncementsPanel from '../components/AnnouncementsPanel.jsx';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -86,9 +87,8 @@ export default function DashboardPage() {
             )}
           </section>
 
-          <ComingSoon icon={Megaphone} title="Announcements">
-            Course news from your instructors will appear here.
-          </ComingSoon>
+          {/* Newest 5 from site-wide + my courses. Instructors post from each course page. */}
+          <AnnouncementsPanel loadUrl="/api/announcements" limit={5} showCourse />
         </div>
 
         <aside className="dashboard-side" aria-label="Schedule and tasks">

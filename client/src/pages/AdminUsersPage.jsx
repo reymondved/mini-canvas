@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api } from '../api.js';
+import AnnouncementsPanel from '../components/AnnouncementsPanel.jsx';
 
 export default function AdminUsersPage() {
   const { user: me } = useAuth();
@@ -36,6 +37,14 @@ export default function AdminUsersPage() {
     <main className="page">
       <h1>Users</h1>
       <p className="muted">Create accounts and deactivate people who should no longer log in.</p>
+
+      <div className="page-section">
+        <AnnouncementsPanel
+          heading="Site-wide announcements"
+          loadUrl="/api/announcements"
+          postUrl="/api/admin/announcements"
+        />
+      </div>
 
       <CreateUserForm onCreated={(user) => setUsers((list) => [...list, user])} />
 
