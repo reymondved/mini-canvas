@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "node --env-file=.env --watch src/index.js",
     "start": "node --env-file=.env src/index.js",
+    "db:migrate": "node --env-file=.env db/migrate.js",
+    "db:rollback": "node --env-file=.env db/migrate.js down",
     "db:seed": "node --env-file=.env db/seed.js",
     "test": "vitest run"
   },
@@ -15,6 +17,7 @@
     "express": "5.1.0",
     "express-session": "1.19.0",
     "multer": "2.4.0",
+    "node-pg-migrate": "9.0.0",
     "pg": "8.23.1"
   },
   "devDependencies": {

@@ -40,8 +40,15 @@ describe('login', () => {
   test('logs in with the right password and never sends the password hash back', async () => {
     const res = await request('/api/auth/login', { method: 'POST', json: STUDENT });
     expect(res.status).toBe(200);
-    expect(res.body.user).toEqual({ id: 1, name: 'Demo Student', email: STUDENT.email, role: 'student' });
-    expect(JSON.stringify(res.body)).not.toContain('password');
+    expect(res.body.user).toEqual({
+      id: 1,
+      name: 'Demo Student',
+      email: STUDENT.email,
+      role: 'student',
+      must_change_password: false,
+    });
+    expect(JSON.stringify(res.body)).not.toContain('password_hash');
+    expect(JSON.stringify(res.body)).not.toContain('$2a$'); // what every bcrypt hash starts with
   });
 
   test('sets the session cookie as httpOnly (JavaScript in the page cannot read it)', async () => {

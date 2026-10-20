@@ -9,6 +9,7 @@ import courseRoutes from './routes/courses.js';
 import assignmentRoutes from './routes/assignments.js';
 import submissionRoutes from './routes/submissions.js';
 import gradeRoutes from './routes/grades.js';
+import adminRoutes from './routes/admin.js';
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET is missing. Copy server/.env.example to server/.env and fill it in.');
@@ -41,3 +42,4 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/grades', gradeRoutes);
+app.use('/api/admin', adminRoutes);

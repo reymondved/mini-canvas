@@ -1,6 +1,6 @@
 // The fake demo data, and a function that resets the database to it.
 // Used by "npm run db:seed" (db/seed.js) and by the automated tests.
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import bcrypt from 'bcryptjs';
@@ -12,6 +12,7 @@ const demoUsers = [
   { name: 'Demo Student', email: 'student@demo.test', password: 'Student123!', role: 'student' },
   { name: 'Demo Instructor', email: 'instructor@demo.test', password: 'Instructor123!', role: 'instructor' },
   { name: 'Demo Instructor Two', email: 'instructor2@demo.test', password: 'Instructor123!', role: 'instructor' },
+  { name: 'Demo Admin', email: 'admin@demo.test', password: 'Admin123!', role: 'admin' },
 ];
 
 // Each course lists its instructor, whether the demo student is enrolled, and its assignments.
@@ -85,13 +86,17 @@ const demoCourses = [
   },
 ];
 
-// Creates the tables (if missing), then RESETS users, courses, assignments,
-// submissions and uploaded files to the demo data above.
+// RESETS all data to the demo data above: users (including ones an admin created),
+// courses, enrollments, assignments, submissions, uploaded files, and logins.
+// The tables must already exist: run "npm run db:migrate" first.
 // log: where progress messages go (tests pass a function that ignores them).
 export async function seedDemoData({ log = console.log } = {}) {
-  const schema = await readFile(new URL('./schema.sql', import.meta.url), 'utf8');
-  await pool.query(schema);
-  log('Tables ready.');
+  // Start fresh. CASCADE also empties every table that points at users or courses,
+  // and RESTART IDENTITY makes the ids start at 1 again (the tests rely on that).
+  await pool.query('TRUNCATE users, courses, session RESTART IDENTITY CASCADE');
+  // The submission rows are gone, so remove their files too (only inside the upload folder).
+  await rm(UPLOAD_DIR, { recursive: true, force: true });
+  await mkdir(UPLOAD_DIR, { recursive: true });
 
   // --- Users ---
   const userIds = {}; // email → id, so courses can point at the right users
@@ -100,11 +105,7 @@ export async function seedDemoData({ log = console.log } = {}) {
     // $1, $2... are placeholders. pg sends the values separately from the SQL,
     // so user data can never change the query itself (this prevents SQL injection).
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, role)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (email) DO UPDATE
-         SET name = EXCLUDED.name, password_hash = EXCLUDED.password_hash, role = EXCLUDED.role
-       RETURNING id`,
+      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
       [user.name, user.email, passwordHash, user.role]
     );
     userIds[user.email] = result.rows[0].id;
@@ -112,11 +113,6 @@ export async function seedDemoData({ log = console.log } = {}) {
   }
 
   // --- Courses, enrollments, assignments ---
-  // Start fresh: CASCADE also empties enrollments, assignments and submissions.
-  await pool.query('TRUNCATE courses RESTART IDENTITY CASCADE');
-  // The submission rows are gone, so remove their files too (only inside server/uploads/).
-  await rm(UPLOAD_DIR, { recursive: true, force: true });
-  await mkdir(UPLOAD_DIR, { recursive: true });
 
   for (const course of demoCourses) {
     const result = await pool.query(
