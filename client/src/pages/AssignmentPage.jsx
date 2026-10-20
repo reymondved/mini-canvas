@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { formatDate, formatFileSize, isLate } from '../format.js';
+import { api } from '../api.js';
+import AssignmentForm from '../components/AssignmentForm.jsx';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // must match the server's limit
 const ACCEPTED_FILES = '.pdf,.docx,.txt,.png,.jpg,.jpeg,.zip';
@@ -11,6 +13,14 @@ export default function AssignmentPage() {
   const { user } = useAuth();
   const [data, setData] = useState(null); // { assignment, submission } or { assignment, submissions }
   const [error, setError] = useState('');
+  const [editing, setEditing] = useState(false);
+
+  // Instructor: save changes, then show the updated assignment.
+  async function saveAssignment(values) {
+    const body = await api(`/api/assignments/${id}`, { method: 'PUT', json: values });
+    setData((current) => ({ ...current, assignment: body.assignment }));
+    setEditing(false);
+  }
 
   useEffect(() => {
     setData(null);
@@ -41,14 +51,31 @@ export default function AssignmentPage() {
   return (
     <main className="page">
       <Link to={`/courses/${assignment.course_id}`}>← Back to {assignment.course_code}</Link>
-      <header className="course-header">
-        <span className="course-code">{assignment.course_code}</span>
-        <h1>{assignment.title}</h1>
-        <p className="muted">
-          Due {formatDate(assignment.due_at)} · {assignment.points} pts
-        </p>
-        <p>{assignment.description}</p>
-      </header>
+      {editing ? (
+        <div className="course-header">
+          <h1>Edit assignment</h1>
+          <AssignmentForm
+            initial={assignment}
+            submitLabel="Save changes"
+            onSave={saveAssignment}
+            onCancel={() => setEditing(false)}
+          />
+        </div>
+      ) : (
+        <header className="course-header">
+          <span className="course-code">{assignment.course_code}</span>
+          <div className="section-header">
+            <h1>{assignment.title}</h1>
+            {user.role === 'instructor' && (
+              <button type="button" className="btn btn-small" onClick={() => setEditing(true)}>Edit</button>
+            )}
+          </div>
+          <p className="muted">
+            Due {formatDate(assignment.due_at)} · {assignment.points} pts
+          </p>
+          <p>{assignment.description}</p>
+        </header>
+      )}
 
       {user.role === 'student' ? (
         <StudentSubmission

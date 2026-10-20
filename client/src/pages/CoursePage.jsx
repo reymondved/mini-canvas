@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { formatDate, submissionStatus } from '../format.js';
+import { api } from '../api.js';
+import AssignmentForm from '../components/AssignmentForm.jsx';
 
 export default function CoursePage() {
   const { user } = useAuth();
@@ -9,6 +11,18 @@ export default function CoursePage() {
   const { id } = useParams();
   const [data, setData] = useState(null); // { course, assignments } once loaded
   const [error, setError] = useState('');
+  const [showForm, setShowForm] = useState(false);
+
+  // Instructor: save a new assignment, then add it to the list (sorted by due date).
+  async function createAssignment(values) {
+    const body = await api(`/api/courses/${id}/assignments`, { method: 'POST', json: values });
+    const newAssignment = { ...body.assignment, submitted_at: null, score: null };
+    setData((current) => ({
+      ...current,
+      assignments: [...current.assignments, newAssignment].sort((a, b) => new Date(a.due_at) - new Date(b.due_at)),
+    }));
+    setShowForm(false);
+  }
 
   useEffect(() => {
     setData(null);
@@ -46,7 +60,17 @@ export default function CoursePage() {
         <p className="muted">{course.description} · {course.instructor_name}</p>
       </header>
 
-      <h2>Assignments</h2>
+      <div className="section-header">
+        <h2>Assignments</h2>
+        {user.role === 'instructor' && !showForm && (
+          <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
+            + New assignment
+          </button>
+        )}
+      </div>
+      {showForm && (
+        <AssignmentForm submitLabel="Create assignment" onSave={createAssignment} onCancel={() => setShowForm(false)} />
+      )}
       {assignments.length === 0 && <p className="muted">No assignments yet.</p>}
       <ul className="assignment-list">
         {assignments.map((a) => {
