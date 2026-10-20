@@ -1,5 +1,15 @@
 // Small helpers for showing data, shared by several pages.
 
+// "Demo Student" → "DS", for round avatars.
+export function initials(name) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export function formatDate(isoString) {
   return new Date(isoString).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }

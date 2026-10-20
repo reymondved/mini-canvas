@@ -27,7 +27,7 @@ export default function AnnouncementPage() {
 
   // Where "Back" goes: the course page for course announcements, otherwise your home page.
   const home = user.role === 'admin' ? '/admin/users' : '/dashboard';
-  const backTo = announcement?.course_id ? `/courses/${announcement.course_id}` : home;
+  const backTo = announcement?.course_id ? `/courses/${announcement.course_id}/announcements` : home;
   const backLabel = announcement?.course_id ? `Back to ${announcement.course_code}` : 'Back';
 
   if (error) {

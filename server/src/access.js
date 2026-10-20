@@ -10,10 +10,13 @@ export function isValidId(value) {
   return /^\d{1,9}$/.test(value);
 }
 
-// Returns the course if this user may open it, otherwise undefined.
+// Returns the course (everything its About tab needs) if this user may open it, otherwise undefined.
+// The syllabus file's disk name is NOT included: it stays on the server.
 export async function findAccessibleCourse(courseId, userId) {
   const result = await pool.query(
-    `SELECT c.id, c.code, c.title, c.description, u.name AS instructor_name
+    `SELECT c.id, c.code, c.title, c.description, c.instructor_id, u.name AS instructor_name,
+            c.syllabus, c.syllabus_file_name, c.syllabus_file_size,
+            (SELECT count(*)::int FROM enrollments e WHERE e.course_id = c.id) AS student_count
      FROM courses c
      JOIN users u ON u.id = c.instructor_id
      WHERE c.id = $1 AND ${CAN_OPEN_COURSE}`,

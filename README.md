@@ -34,7 +34,23 @@
 - [x] **Extra** – Redesign as **Eng Academy**: sidebar layout, new dashboard, blue design system
 - [x] **Extra** – Announcements: instructors post to their courses, admins post site-wide
 - [x] **Extra** – Announcement replies, read/unread per person, and file attachments
-- [ ] **Later** – Search, class schedule, resources, notifications, study activity, messages (shown as "Coming soon" for now)
+- [x] **Extra** – Courses page and course home tabs: About (with syllabus), Announcements, Assignments, Modules, Grades (with an instructor gradebook), People
+- [ ] **Later** – Modules, search, class schedule, resources, notifications, study activity, messages (shown as "Coming soon" for now)
+
+## Course home
+
+**Courses** in the sidebar lists only the courses you have access to (enrolled or teaching). Opening one shows tabs, each with its own address (for example `/courses/1/people`):
+
+| Tab | Students | The course's instructor |
+|---|---|---|
+| **About** | Description, instructor, course code, number of students, syllabus | Same, plus **edit the syllabus** text and attach/replace/remove one syllabus file |
+| **Announcements** | This course's announcements | Same, plus post new ones |
+| **Assignments** | The assignments with their status | Same, plus create new ones |
+| **Modules** | "Coming soon" | "Coming soon" |
+| **Grades** | **Only their own** grades in this course | A **gradebook**: every enrolled student × every assignment (click a cell to grade) |
+| **People** | Names and roles | Names, roles **and emails** |
+
+The public course list (linked from the login page) is at `/catalog`.
 
 ## Folder structure
 
@@ -225,7 +241,11 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | POST | `/api/auth/change-password` | Logged in (also with a temporary password) | `{ currentPassword, newPassword }` |
 | GET | `/api/courses` | Anyone | Public course catalog |
 | GET | `/api/courses/mine` | Logged in | Student: enrolled courses. Instructor: courses they teach |
-| GET | `/api/courses/:id` | Enrolled student or the course's instructor | Course with its assignments (404 otherwise) |
+| GET | `/api/courses/:id` | Enrolled student or the course's instructor | Course details (incl. syllabus, student count) with its assignments (404 otherwise) |
+| PUT | `/api/courses/:id/syllabus` | The course's **instructor** | Edit the syllabus text `{ syllabus }` |
+| PUT / DELETE / GET | `/api/courses/:id/syllabus/file` | Instructor (PUT, DELETE) / anyone in the course (GET) | Upload or replace (form field `file`) / remove / download the syllabus file |
+| GET | `/api/courses/:id/people` | Anyone in the course | Instructor + enrolled students (emails only for the instructor) |
+| GET | `/api/courses/:id/grades` | Anyone in the course | Student: own grades. Instructor: gradebook `{ assignments, students, submissions }` |
 | POST | `/api/courses/:id/assignments` | The course's **instructor** | Create `{ title, description, dueAt, points }` |
 | GET | `/api/assignments/:id` | Enrolled student or the course's instructor | Assignment + my submission (student) or all submissions (instructor) |
 | PUT | `/api/assignments/:id` | The course's **instructor** | Edit `{ title, description, dueAt, points }` |

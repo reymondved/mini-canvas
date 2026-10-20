@@ -6,6 +6,7 @@ import { api } from '../api.js';
 import Illustration from '../components/Illustration.jsx';
 import ComingSoon from '../components/ComingSoon.jsx';
 import CourseCard from '../components/CourseCard.jsx';
+import { StudentProgress, TeachingSummary } from '../components/CourseProgress.jsx';
 import DeadlineCalendar from '../components/DeadlineCalendar.jsx';
 import UpcomingList from '../components/UpcomingList.jsx';
 import AnnouncementsPanel from '../components/AnnouncementsPanel.jsx';
@@ -106,40 +107,6 @@ export default function DashboardPage() {
   );
 }
 
-// "2 / 3 assignments submitted" + a progress bar. Real numbers from the server.
-function StudentProgress({ course }) {
-  const { assignment_count: total, submitted_count: done } = course;
-  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
-  return (
-    <>
-      <div className="course-card-stats">
-        <span>
-          {done} / {total} submitted
-        </span>
-        <span>{percent}%</span>
-      </div>
-      {/* role="progressbar" tells screen readers what this bar means */}
-      <div className="progress" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}
-        aria-label={`${course.code} progress`}>
-        <span style={{ width: `${percent}%` }} />
-      </div>
-    </>
-  );
-}
-
-function TeachingSummary({ course }) {
-  return (
-    <div className="course-card-stats">
-      <span>{course.assignment_count} assignments</span>
-      {course.to_grade_count > 0 ? (
-        <span className="tag tag-late">{course.to_grade_count} to grade</span>
-      ) : (
-        <span className="tag tag-done">All graded</span>
-      )}
-    </div>
-  );
-}
-
 // Instructors: which courses have submissions waiting for a grade.
 function ToGradeList({ courses }) {
   const waiting = (courses ?? []).filter((c) => c.to_grade_count > 0);
@@ -156,7 +123,7 @@ function ToGradeList({ courses }) {
       <ul className="task-list">
         {waiting.map((c) => (
           <li key={c.id}>
-            <Link to={`/courses/${c.id}`} className="task">
+            <Link to={`/courses/${c.id}/grades`} className="task">
               <span className="date-badge" aria-hidden="true">
                 <strong>{c.to_grade_count}</strong>
               </span>

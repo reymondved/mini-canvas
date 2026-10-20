@@ -50,7 +50,7 @@ export default function AssignmentPage() {
 
   return (
     <main className="page">
-      <Link to={`/courses/${assignment.course_id}`}>← Back to {assignment.course_code}</Link>
+      <Link to={`/courses/${assignment.course_id}/assignments`}>← Back to {assignment.course_code}</Link>
       {editing ? (
         <div className="course-header">
           <h1>Edit assignment</h1>
