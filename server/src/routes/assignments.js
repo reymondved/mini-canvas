@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { pool } from '../db.js';
 import { requireLogin } from '../middleware/requireLogin.js';
 import { requireRole } from '../middleware/requireRole.js';
-import { findAccessibleAssignment, isValidId } from '../access.js';
+import { findAccessibleAssignment, findTaughtCourse, isValidId } from '../access.js';
+import { checkAssignmentInput } from '../assignmentInput.js';
 import { cleanFileName, deleteStoredFile, handleUpload } from '../uploads.js';
 
 const router = Router();
@@ -37,6 +38,36 @@ router.get('/:id', requireLogin, async (req, res) => {
     [assignment.id, assignment.course_id]
   );
   res.json({ assignment, submissions: result.rows });
+});
+
+// PUT /api/assignments/:id — edit an assignment. Only the instructor who TEACHES its course.
+router.put('/:id', requireLogin, requireRole('instructor'), async (req, res) => {
+  const assignment = isValidId(req.params.id) && (await findAccessibleAssignment(req.params.id, req.user.id));
+  if (!assignment || !(await findTaughtCourse(assignment.course_id, req.user.id))) {
+    return res.status(404).json({ error: 'Assignment not found.' });
+  }
+  const { error, values } = checkAssignmentInput(req.body);
+  if (error) {
+    return res.status(400).json({ error });
+  }
+
+  // Points can't drop below a grade already given: a 9/10 must not turn into 9/5.
+  const highest = await pool.query('SELECT max(score) AS score FROM submissions WHERE assignment_id = $1', [
+    assignment.id,
+  ]);
+  const highestScore = highest.rows[0].score;
+  const newPoints = values[3];
+  if (highestScore !== null && newPoints < highestScore) {
+    return res.status(400).json({
+      error: `Points can't be lower than a grade already given (${highestScore}).`,
+    });
+  }
+
+  await pool.query('UPDATE assignments SET title = $1, description = $2, due_at = $3, points = $4 WHERE id = $5', [
+    ...values,
+    assignment.id,
+  ]);
+  res.json({ assignment: await findAccessibleAssignment(assignment.id, req.user.id) });
 });
 
 // Runs BEFORE the upload, so files from people who aren't allowed never reach the disk.

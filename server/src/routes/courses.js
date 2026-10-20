@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
 import { requireLogin } from '../middleware/requireLogin.js';
-import { findAccessibleCourse, isValidId } from '../access.js';
+import { requireRole } from '../middleware/requireRole.js';
+import { findAccessibleCourse, findTaughtCourse, isValidId } from '../access.js';
+import { checkAssignmentInput } from '../assignmentInput.js';
 
 const router = Router();
 
@@ -57,6 +59,26 @@ router.get('/:id', requireLogin, async (req, res) => {
     [course.id, req.user.id]
   );
   res.json({ course, assignments: assignmentsResult.rows });
+});
+
+// POST /api/courses/:id/assignments — add an assignment. Only the instructor who TEACHES this course.
+// Checks in order: logged in → instructor → teaches this course → valid form → save.
+router.post('/:id/assignments', requireLogin, requireRole('instructor'), async (req, res) => {
+  const course = isValidId(req.params.id) && (await findTaughtCourse(req.params.id, req.user.id));
+  if (!course) {
+    return res.status(404).json({ error: 'Course not found.' });
+  }
+  const { error, values } = checkAssignmentInput(req.body);
+  if (error) {
+    return res.status(400).json({ error });
+  }
+  const result = await pool.query(
+    `INSERT INTO assignments (course_id, title, description, due_at, points)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, course_id, title, description, due_at, points`,
+    [course.id, ...values]
+  );
+  res.status(201).json({ assignment: result.rows[0] });
 });
 
 export default router;
