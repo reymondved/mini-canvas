@@ -31,6 +31,7 @@
 - [x] **Extra** – Automated API tests (Vitest)
 - [x] **Extra** – Admin role: manage users and courses, temporary passwords, database migrations
 - [x] **Extra** – Instructors create and edit assignments
+- [x] **Extra** – "Missing" and "Coming up" lists on the student dashboard
 
 ## Folder structure
 
@@ -176,6 +177,13 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 - Points can't be lowered below a grade already given (a 9/10 can't become 9/5).
 - Assignments can't be deleted, because that would erase students' work.
 
+## Student dashboard: to-do list
+
+- **Missing:** past the due date and nothing submitted.
+- **Coming up:** due in the next **7 days** and not submitted yet, soonest first. Submitted work disappears from the list.
+- The server decides what's in each list using the **database's clock**, so a student's wrong computer time can't change it.
+- The seed includes one missing assignment (**HTML Basics Quiz**, WEB 201) so you can see it.
+
 ## Admin rules
 
 - Admins create users. The server makes a random **temporary password**, shown to the admin **once**. The new user must change it at their first login; until then, the server blocks everything else.
@@ -202,6 +210,7 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 | GET | `/api/submissions/:id/file` | That student or the course's instructor | Download the submitted file |
 | PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
 | GET | `/api/grades` | **Student** | All my assignments and scores, by course |
+| GET | `/api/upcoming` | **Student** | `{ days, missing, upcoming }`: my unsubmitted work |
 | GET / POST | `/api/admin/users` | **Admin** | List users / create one (returns a one-time temporary password) |
 | PATCH | `/api/admin/users/:id` | **Admin** | `{ isActive }`: deactivate or reactivate |
 | GET / POST | `/api/admin/courses` | **Admin** | List courses / create one |

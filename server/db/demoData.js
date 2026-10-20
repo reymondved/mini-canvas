@@ -61,6 +61,8 @@ const demoCourses = [
     assignments: [
       { title: 'Personal Homepage', description: 'Build a one-page site about yourself using HTML and CSS.', dueInDays: 6, points: 50 },
       { title: 'Responsive Layout', description: 'Make your homepage work on phones and desktops.', dueInDays: 14, points: 50 },
+      // Example: past due and NOT submitted, so it shows as "Missing" on the dashboard
+      { title: 'HTML Basics Quiz', description: 'Short quiz on HTML tags and structure.', dueInDays: -1, points: 15 },
     ],
   },
   {

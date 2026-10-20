@@ -4,6 +4,14 @@ export function formatDate(isoString) {
   return new Date(isoString).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+// "in 2 days", "tomorrow", "in 5 hours", "yesterday"... in the browser's language.
+export function formatRelative(isoString) {
+  const hours = Math.round((new Date(isoString) - new Date()) / (60 * 60 * 1000));
+  const relative = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  if (Math.abs(hours) < 24) return relative.format(hours, 'hour');
+  return relative.format(Math.round(hours / 24), 'day');
+}
+
 // The browser's date-and-time picker (<input type="datetime-local">) works in LOCAL time, without a zone.
 // toLocalInputValue: server date (UTC) → "2026-11-05T23:59" for the picker.
 export function toLocalInputValue(isoString) {
