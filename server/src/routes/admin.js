@@ -5,6 +5,7 @@ import { pool } from '../db.js';
 import { requireLogin } from '../middleware/requireLogin.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { isValidId } from '../access.js';
+import { checkAnnouncementInput, createAnnouncement } from '../announcementData.js';
 
 const router = Router();
 
@@ -86,6 +87,17 @@ router.patch('/users/:id', async (req, res) => {
     return res.status(404).json({ error: 'User not found.' });
   }
   res.json({ user: result.rows[0] });
+});
+
+// ---------- Announcements ----------
+
+// POST /api/admin/announcements — a SITE-WIDE announcement (no course): everyone sees it.
+router.post('/announcements', async (req, res) => {
+  const { error, values } = checkAnnouncementInput(req.body);
+  if (error) {
+    return res.status(400).json({ error });
+  }
+  res.status(201).json({ announcement: await createAnnouncement(null, req.user.id, values) });
 });
 
 // ---------- Courses ----------

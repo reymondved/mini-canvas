@@ -88,8 +88,41 @@ const demoCourses = [
   },
 ];
 
+// course: null = site-wide (for everyone). hoursAgo: how long ago it was posted.
+const demoAnnouncements = [
+  {
+    course: null,
+    author: 'admin@demo.test',
+    title: 'Midterm exam week: Oct 26–30',
+    body: 'Midterm exams run from October 26 to 30. Check each course page for your exam time and room.',
+    hoursAgo: 30,
+  },
+  {
+    course: 'CS 101',
+    author: 'instructor@demo.test',
+    title: 'CS 101 midterm: Oct 27, 9:00–11:00',
+    body: 'The midterm covers variables, loops and functions. Room 204. Bring a pencil; no laptops.',
+    hoursAgo: 20,
+  },
+  {
+    course: 'WEB 201',
+    author: 'instructor@demo.test',
+    title: 'Lab moved to Thursday',
+    body: "This week's lab moves from Wednesday to Thursday, same time.",
+    hoursAgo: 5,
+  },
+  {
+    // The demo student is NOT in MATH 120, so they must never see this one.
+    course: 'MATH 120',
+    author: 'instructor2@demo.test',
+    title: 'MATH 120 quiz on Friday',
+    body: 'Short quiz on truth tables.',
+    hoursAgo: 2,
+  },
+];
+
 // RESETS all data to the demo data above: users (including ones an admin created),
-// courses, enrollments, assignments, submissions, uploaded files, and logins.
+// courses, enrollments, assignments, submissions, announcements, uploaded files, and logins.
 // The tables must already exist: run "npm run db:migrate" first.
 // log: where progress messages go (tests pass a function that ignores them).
 export async function seedDemoData({ log = console.log } = {}) {
@@ -115,6 +148,7 @@ export async function seedDemoData({ log = console.log } = {}) {
   }
 
   // --- Courses, enrollments, assignments ---
+  const courseIds = {}; // code → id, so announcements can point at the right course
 
   for (const course of demoCourses) {
     const result = await pool.query(
@@ -122,6 +156,7 @@ export async function seedDemoData({ log = console.log } = {}) {
       [course.code, course.title, course.description, userIds[course.instructor]]
     );
     const courseId = result.rows[0].id;
+    courseIds[course.code] = courseId;
 
     if (course.studentEnrolled) {
       await pool.query('INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)', [
@@ -160,4 +195,14 @@ export async function seedDemoData({ log = console.log } = {}) {
     }
     log(`Seeded course: ${course.code} (${course.assignments.length} assignments)`);
   }
+
+  // --- Announcements ---
+  for (const a of demoAnnouncements) {
+    await pool.query(
+      `INSERT INTO announcements (course_id, author_id, title, body, created_at)
+       VALUES ($1, $2, $3, $4, now() - make_interval(hours => $5))`,
+      [a.course ? courseIds[a.course] : null, userIds[a.author], a.title, a.body, a.hoursAgo]
+    );
+  }
+  log(`Seeded ${demoAnnouncements.length} announcements`);
 }
