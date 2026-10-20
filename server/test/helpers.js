@@ -22,7 +22,7 @@ export const ADMIN = { email: 'admin@demo.test', password: 'Admin123!' };
 export const IDS = {
   users: { student: 1, instructor: 2, instructor2: 3, admin: 4 },
   courses: { cs101: 1, web201: 2, db210: 3, math120: 4 },
-  assignments: { helloWorld: 1, loops: 2, functionsQuiz: 3, homepage: 4, logic: 8 },
+  assignments: { helloWorld: 1, loops: 2, functionsQuiz: 3, homepage: 4, htmlQuiz: 6, designSchema: 7, logic: 9 },
   submissions: { helloWorldGraded: 1, loopsUngraded: 2 },
 };
 
