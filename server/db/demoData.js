@@ -17,85 +17,126 @@ const demoUsers = [
 
 // Each course lists its instructor, whether the demo student is enrolled, and its assignments.
 // dueInDays: negative = already past, positive = upcoming (relative to when you run the seed).
+// The ORDER matters: the tests rely on the ids it produces (courses 1–4, assignments 1–9).
 const demoCourses = [
   {
-    code: 'CS 101',
-    title: 'Introduction to Programming',
-    description: 'Variables, loops, and functions: the building blocks of every program.',
+    code: 'EE 101',
+    title: 'Circuit Analysis 1',
+    description: "Voltage, current and resistance: Ohm's law, Kirchhoff's laws and network theorems for DC circuits.",
     instructor: 'instructor@demo.test',
     studentEnrolled: true,
     syllabus: [
       'Course goals',
-      'By the end of this course you can write small programs using variables, loops and functions.',
+      "By the end of this course you can analyze DC circuits using Ohm's law, Kirchhoff's laws (KVL and KCL),",
+      'mesh and nodal analysis, and Thevenin and Norton equivalents.',
       '',
       'Grading',
-      '- Assignments: 60%',
+      '- Problem sets and quizzes: 30%',
+      '- Laboratory reports: 30%',
       '- Midterm exam: 20%',
-      '- Final project: 20%',
+      '- Final exam: 20%',
+      '',
+      'Laboratory',
+      'Lab reports are due one week after each experiment. Bring your own multimeter and breadboard.',
       '',
       'Late work',
       'Late submissions are accepted but marked Late. Talk to me if you need more time.',
     ].join('\n'),
     assignments: [
       {
-        title: 'Hello, World',
-        description: 'Write and run your first program.',
+        title: "Ohm's Law Problem Set",
+        description: 'Solve 10 problems on voltage, current, resistance and power in series and parallel circuits.',
         dueInDays: -3,
         points: 10,
         // Example: already submitted by the demo student AND graded
         submission: {
-          fileName: 'hello-world.txt',
-          content: 'console.log("Hello, World!");\n',
+          fileName: 'ohms-law-problem-set.txt',
+          content: 'Problem 1: V = I x R = 2 A x 5 ohms = 10 V\nProblem 2: P = V x I = 12 V x 0.5 A = 6 W\n',
           score: 9,
-          feedback: 'Nice work! Add a comment at the top explaining what the program does.',
+          feedback: 'Good work! Remember to include units in every final answer.',
         },
       },
       {
-        title: 'Loops Practice',
-        description: 'Print the numbers 1 to 100 using a loop.',
+        title: "Kirchhoff's Laws Lab Report",
+        description: 'Measure the currents and voltages in the lab circuit and verify KVL and KCL.',
         dueInDays: 4,
         points: 20,
         // Example: submitted, waiting for the instructor to grade it
         submission: {
-          fileName: 'loops.txt',
-          content: 'for (let i = 1; i <= 100; i++) {\n  console.log(i);\n}\n',
+          fileName: 'kirchhoff-lab-report.txt',
+          content: 'KCL at node A: I1 = I2 + I3 -> 15 mA = 10 mA + 5 mA (verified)\nKVL around loop 1: 12 V - 7 V - 5 V = 0 (verified)\n',
         },
       },
-      { title: 'Functions Quiz', description: 'Short quiz on writing and calling functions.', dueInDays: 11, points: 30 },
+      {
+        title: 'Thevenin Equivalent Quiz',
+        description: 'Short quiz: find the Thevenin voltage and resistance of three circuits.',
+        dueInDays: 11,
+        points: 30,
+      },
     ],
   },
   {
-    code: 'WEB 201',
-    title: 'Web Development Fundamentals',
-    description: 'Build web pages with HTML, CSS, and JavaScript.',
+    code: 'CPE 201',
+    title: 'Digital Logic Design',
+    description: 'Number systems, Boolean algebra, logic gates and combinational circuit design.',
     instructor: 'instructor@demo.test',
     studentEnrolled: true,
     assignments: [
-      { title: 'Personal Homepage', description: 'Build a one-page site about yourself using HTML and CSS.', dueInDays: 6, points: 50 },
-      { title: 'Responsive Layout', description: 'Make your homepage work on phones and desktops.', dueInDays: 14, points: 50 },
+      {
+        title: 'Logic Gates Worksheet',
+        description: 'Draw the truth tables and symbols of AND, OR, NOT, NAND, NOR and XOR gates.',
+        dueInDays: 6,
+        points: 50,
+      },
+      {
+        title: 'Karnaugh Map Exercise',
+        description: 'Simplify five Boolean functions using K-maps and draw the simplified circuits.',
+        dueInDays: 14,
+        points: 50,
+      },
       // Example: past due and NOT submitted, so it shows as "Missing" on the dashboard
-      { title: 'HTML Basics Quiz', description: 'Short quiz on HTML tags and structure.', dueInDays: -1, points: 15 },
+      {
+        title: 'Boolean Algebra Quiz',
+        description: "Short quiz on Boolean laws and De Morgan's theorems.",
+        dueInDays: -1,
+        points: 15,
+      },
     ],
   },
   {
-    code: 'DB 210',
-    title: 'Database Systems',
-    description: 'Design tables and write SQL queries to store and find data.',
+    code: 'ECE 210',
+    title: 'Signals and Systems',
+    description: 'Continuous and discrete-time signals, convolution, and the Fourier series and transform.',
     instructor: 'instructor@demo.test',
     studentEnrolled: true,
     assignments: [
-      { title: 'Design a Schema', description: 'Draw the tables for a small library system.', dueInDays: 2, points: 40 },
-      { title: 'SQL Queries', description: 'Write SELECT queries with WHERE and JOIN.', dueInDays: 9, points: 60 },
+      {
+        title: 'Fourier Series Problem Set',
+        description: 'Find the Fourier series of a square wave and a sawtooth wave.',
+        dueInDays: 2,
+        points: 40,
+      },
+      {
+        title: 'Convolution Lab',
+        description: 'Use MATLAB or Python to convolve two signals and compare with your hand calculation.',
+        dueInDays: 9,
+        points: 60,
+      },
     ],
   },
   {
     code: 'MATH 120',
-    title: 'Discrete Mathematics',
-    description: 'Logic, sets, and counting for computer science.',
+    title: 'Differential Equations',
+    description: 'First and second-order ordinary differential equations and their engineering applications.',
     instructor: 'instructor2@demo.test',
     studentEnrolled: false, // used to test that the demo student can't open this course
     assignments: [
-      { title: 'Logic Worksheet', description: 'Truth tables and logical operators.', dueInDays: 5, points: 25 },
+      {
+        title: 'First-Order ODE Worksheet',
+        description: 'Solve separable and linear first-order equations, including an RC circuit example.',
+        dueInDays: 5,
+        points: 25,
+      },
     ],
   },
 ];
@@ -111,27 +152,28 @@ const demoAnnouncements = [
     hoursAgo: 30,
   },
   {
-    course: 'CS 101',
+    course: 'EE 101',
     author: 'instructor@demo.test',
-    title: 'CS 101 midterm: Oct 27, 9:00–11:00',
-    body: 'The midterm covers variables, loops and functions. Room 204. Bring a pencil; no laptops.',
+    title: 'EE 101 midterm: Oct 27, 9:00–11:00',
+    body: "The midterm covers Ohm's law, Kirchhoff's laws (KVL and KCL) and Thevenin equivalents.\nRoom EN-204. Bring a scientific calculator; no phones.",
     hoursAgo: 20,
     files: [
       {
         fileName: 'midterm-coverage.txt',
-        content: 'CS 101 midterm coverage\n- Variables and types\n- Loops (for, while)\n- Functions and return values\n',
+        content:
+          "EE 101 midterm coverage\n- Ohm's law and power\n- Series and parallel resistors\n- Kirchhoff's laws (KVL, KCL)\n- Thevenin and Norton equivalents\n",
       },
     ],
     replies: [
       { author: 'student@demo.test', body: 'Is it open notes?' },
-      { author: 'instructor@demo.test', body: 'No, closed notes. You may bring one index card.' },
+      { author: 'instructor@demo.test', body: 'No, closed notes. You may bring one formula sheet.' },
     ],
   },
   {
-    course: 'WEB 201',
+    course: 'CPE 201',
     author: 'instructor@demo.test',
     title: 'Lab moved to Thursday',
-    body: "This week's lab moves from Wednesday to Thursday, same time.",
+    body: "This week's logic lab moves from Wednesday to Thursday, same time, Room EN-305. Bring your breadboard.",
     hoursAgo: 5,
   },
   {
@@ -139,7 +181,7 @@ const demoAnnouncements = [
     course: 'MATH 120',
     author: 'instructor2@demo.test',
     title: 'MATH 120 quiz on Friday',
-    body: 'Short quiz on truth tables.',
+    body: 'Short quiz on separable first-order equations.',
     hoursAgo: 2,
   },
 ];
@@ -260,12 +302,13 @@ export async function seedDemoData({ log = console.log, withHistory = true } = {
   }
 }
 
-// A course from "last term": 11 weekly practice sets and a quiz every other week, mostly
-// submitted the day before they were due. Week 5's practice was late and week 8's quiz was missed.
+// A course from "last term": 11 weekly drawing plates and a quiz every other week, mostly
+// submitted the day before they were due. Week 5's plate was late and week 8's quiz was missed.
 async function seedPastCourse(userIds, log) {
   const course = await pool.query(
     `INSERT INTO courses (code, title, description, instructor_id)
-     VALUES ('CS 100', 'Computing Basics (last term)', 'How computers store and process information.', $1)
+     VALUES ('ENGR 100', 'Engineering Drawing (last term)',
+             'Orthographic and isometric projection, dimensioning and basic CAD.', $1)
      RETURNING id`,
     [userIds['instructor@demo.test']]
   );
@@ -276,14 +319,14 @@ async function seedPastCourse(userIds, log) {
   let count = 0;
   for (let week = 1; week <= 11; week++) {
     const dueInDays = -80 + 7 * week; // from 73 days ago up to 3 days ago
-    const items = [{ title: `Week ${week} practice`, points: 10, lateDays: week === 5 ? 1 : 0 }];
+    const items = [{ title: `Week ${week} plate`, points: 10, lateDays: week === 5 ? 1 : 0 }];
     if (week % 2 === 0) {
       items.push({ title: `Week ${week} quiz`, points: 20, skip: week === 8 });
     }
     for (const item of items) {
       const assignment = await pool.query(
         `INSERT INTO assignments (course_id, title, description, due_at, points)
-         VALUES ($1, $2, 'Weekly work from last term.', date_trunc('day', now()) + make_interval(days => $3, hours => 23, mins => 59), $4)
+         VALUES ($1, $2, 'Weekly drawing work from last term.', date_trunc('day', now()) + make_interval(days => $3, hours => 23, mins => 59), $4)
          RETURNING id`,
         [courseId, item.title, dueInDays, item.points]
       );
@@ -311,5 +354,5 @@ async function seedPastCourse(userIds, log) {
       count++;
     }
   }
-  log(`Seeded past course: CS 100 (${count} submissions for the activity heatmap)`);
+  log(`Seeded past course: ENGR 100 (${count} submissions for the activity heatmap)`);
 }

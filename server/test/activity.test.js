@@ -26,8 +26,8 @@ beforeAll(async () => {
 });
 afterAll(stopTestServer);
 
-// The seed (without history): the demo student submitted "Hello, World" (late) and "Loops Practice"
-// (on time) just now, and missed "HTML Basics Quiz" (WEB 201).
+// The seed (without history): the demo student submitted "Ohm's Law Problem Set" (late) and "Kirchhoff's Laws Lab Report"
+// (on time) just now, and missed "Boolean Algebra Quiz" (CPE 201).
 const dayCount = (body, date) => body.days.find((d) => d.date === date)?.count;
 
 describe('my own activity', () => {
@@ -62,12 +62,12 @@ describe('my own activity', () => {
   });
 
   test('days follow YOUR time zone: 22:00 UTC is already the next morning in Manila', async () => {
-    // Move "Hello, World" to yesterday 22:00 UTC (= today 06:00 in Manila, UTC+8).
+    // Move "Ohm's Law Problem Set" to yesterday 22:00 UTC (= today 06:00 in Manila, UTC+8).
     await pool.query(
       `UPDATE submissions
        SET submitted_at = (((now() AT TIME ZONE 'UTC')::date)::timestamp - interval '2 hours') AT TIME ZONE 'UTC'
        WHERE id = $1`,
-      [IDS.submissions.helloWorldGraded]
+      [IDS.submissions.ohmsLawGraded]
     );
     const { rows } = await pool.query(
       `SELECT to_char((now() AT TIME ZONE 'UTC')::date - 1, 'YYYY-MM-DD') AS yesterday_utc`
@@ -84,15 +84,15 @@ describe("an instructor viewing a student's activity", () => {
   const url = (courseId, userId) => `/api/courses/${courseId}/students/${userId}/activity?tz=UTC`;
 
   test('the course instructor sees it, limited to THEIR course', async () => {
-    const res = await request(url(IDS.courses.cs101, IDS.users.student), { cookie: instructor });
+    const res = await request(url(IDS.courses.ee101, IDS.users.student), { cookie: instructor });
     expect(res.status).toBe(200);
     expect(res.body.student.name).toBe('Demo Student');
-    // The missed HTML quiz is in WEB 201, so it doesn't count in CS 101.
+    // The missed Boolean Algebra Quiz is in CPE 201, so it doesn't count in EE 101.
     expect(res.body.requirements).toEqual({ on_time: 1, late: 1, missing: 0 });
   });
 
   test("another instructor can't see it", async () => {
-    expect((await request(url(IDS.courses.cs101, IDS.users.student), { cookie: instructor2 })).status).toBe(404);
+    expect((await request(url(IDS.courses.ee101, IDS.users.student), { cookie: instructor2 })).status).toBe(404);
   });
 
   test('only for students who are enrolled in that course', async () => {
@@ -101,6 +101,6 @@ describe("an instructor viewing a student's activity", () => {
   });
 
   test("a student can't use this to look at anyone (not even themselves)", async () => {
-    expect((await request(url(IDS.courses.cs101, IDS.users.student), { cookie: student })).status).toBe(403);
+    expect((await request(url(IDS.courses.ee101, IDS.users.student), { cookie: student })).status).toBe(403);
   });
 });

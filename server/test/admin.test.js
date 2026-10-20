@@ -207,16 +207,16 @@ describe('managing courses', () => {
 });
 
 describe('removing a student from a course', () => {
-  const cs101Students = `/api/admin/courses/${IDS.courses.cs101}/students/${IDS.users.student}`;
+  const cs101Students = `/api/admin/courses/${IDS.courses.ee101}/students/${IDS.users.student}`;
 
   test('blocks the course but KEEPS their submissions', async () => {
     const removed = await request(cs101Students, { method: 'DELETE', cookie: admin });
     expect(removed.status).toBe(204);
-    expect((await request(`/api/courses/${IDS.courses.cs101}`, { cookie: student })).status).toBe(404);
+    expect((await request(`/api/courses/${IDS.courses.ee101}`, { cookie: student })).status).toBe(404);
 
-    // Enroll again: the graded "Hello, World" submission is still there.
+    // Enroll again: the graded "Ohm's Law Problem Set" submission is still there.
     await request(cs101Students, { method: 'PUT', cookie: admin });
-    const assignment = await request(`/api/assignments/${IDS.assignments.helloWorld}`, { cookie: student });
+    const assignment = await request(`/api/assignments/${IDS.assignments.ohmsLaw}`, { cookie: student });
     expect(assignment.body.submission.score).toBe(9);
   });
 });

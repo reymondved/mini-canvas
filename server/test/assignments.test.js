@@ -25,7 +25,7 @@ beforeAll(async () => {
 });
 afterAll(stopTestServer);
 
-const createUrl = `/api/courses/${IDS.courses.cs101}/assignments`;
+const createUrl = `/api/courses/${IDS.courses.ee101}/assignments`;
 // 23:59 Philippine time (UTC+8) on 5 November 2026.
 const newAssignment = {
   title: 'Arrays Practice',
@@ -68,19 +68,19 @@ describe('creating an assignment', () => {
   });
 
   test('enrolled students see the new assignment on the course page and grades page', async () => {
-    const course = await request(`/api/courses/${IDS.courses.cs101}`, { cookie: student });
+    const course = await request(`/api/courses/${IDS.courses.ee101}`, { cookie: student });
     expect(course.body.assignments.map((a) => a.title)).toContain('Arrays Practice');
 
     const grades = await request('/api/grades', { cookie: student });
-    const cs101 = grades.body.courses.find((c) => c.code === 'CS 101');
-    expect(cs101.assignments.map((a) => a.title)).toContain('Arrays Practice');
+    const ee101 = grades.body.courses.find((c) => c.code === 'EE 101');
+    expect(ee101.assignments.map((a) => a.title)).toContain('Arrays Practice');
   });
 });
 
 describe('editing an assignment', () => {
-  const editUrl = `/api/assignments/${IDS.assignments.functionsQuiz}`;
+  const editUrl = `/api/assignments/${IDS.assignments.theveninQuiz}`;
   const edited = {
-    title: 'Functions Quiz (updated)',
+    title: 'Thevenin Equivalent Quiz (updated)',
     description: 'Now with arrow functions.',
     dueAt: '2026-12-01T12:00:00Z',
     points: 40,
@@ -97,26 +97,26 @@ describe('editing an assignment', () => {
   test("the course's instructor can edit it", async () => {
     const res = await request(editUrl, { method: 'PUT', cookie: instructor, json: edited });
     expect(res.status).toBe(200);
-    expect(res.body.assignment.title).toBe('Functions Quiz (updated)');
+    expect(res.body.assignment.title).toBe('Thevenin Equivalent Quiz (updated)');
     expect(res.body.assignment.points).toBe(40);
   });
 
   test('points cannot drop below a grade already given', async () => {
-    // "Hello, World" was graded 9 out of 10.
-    const res = await request(`/api/assignments/${IDS.assignments.helloWorld}`, {
+    // "Ohm's Law Problem Set" was graded 9 out of 10.
+    const res = await request(`/api/assignments/${IDS.assignments.ohmsLaw}`, {
       method: 'PUT',
       cookie: instructor,
-      json: { ...edited, title: 'Hello, World', points: 5 },
+      json: { ...edited, title: "Ohm's Law Problem Set", points: 5 },
     });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/lower than a grade/);
   });
 
   test('points equal to the highest grade are fine', async () => {
-    const res = await request(`/api/assignments/${IDS.assignments.helloWorld}`, {
+    const res = await request(`/api/assignments/${IDS.assignments.ohmsLaw}`, {
       method: 'PUT',
       cookie: instructor,
-      json: { ...edited, title: 'Hello, World', points: 9 },
+      json: { ...edited, title: "Ohm's Law Problem Set", points: 9 },
     });
     expect(res.status).toBe(200);
   });

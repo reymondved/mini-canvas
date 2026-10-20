@@ -44,7 +44,7 @@
 - A **Requirements** box: assignments **submitted on time**, **submitted late**, and **missing** (past due, nothing submitted).
 - Days follow **your time zone** (the browser sends it, e.g. `Asia/Manila`), so a late-night submission counts for the right day.
 - **Who can see it:** the student (their whole activity, on the dashboard) and **each instructor, only for their own course** (People tab → Activity). Admins can't. Students see a note saying their instructors can see it.
-- `npm run db:seed` adds a finished past course (**CS 100, last term**) with weekly submissions so the heatmap isn't empty. The tests seed without it.
+- `npm run db:seed` adds a finished past course (**ENGR 100 Engineering Drawing, last term**) with weekly submissions so the heatmap isn't empty. The tests seed without it.
 
 ## Course home
 
@@ -194,9 +194,17 @@ Run them before every commit. If one fails, read its name: it tells you which ru
 | Instructor | instructor2@demo.test | Instructor123! |
 | Admin | admin@demo.test | Admin123! |
 
-The demo student is enrolled in CS 101, WEB 201 and DB 210, but **not** MATH 120 (taught by instructor2). Use that to test that users can only open their own courses.
+The demo data is **engineering-themed**:
 
-The seed also adds two example submissions from the demo student in CS 101: **Hello, World** (already graded, 9/10) and **Loops Practice** (waiting for a grade).
+| Course | Instructor | Demo student |
+|---|---|---|
+| **EE 101** Circuit Analysis 1 | instructor | enrolled |
+| **CPE 201** Digital Logic Design | instructor | enrolled |
+| **ECE 210** Signals and Systems | instructor | enrolled |
+| **MATH 120** Differential Equations | instructor2 | **not** enrolled (to test that users can only open their own courses) |
+| **ENGR 100** Engineering Drawing (last term) | instructor | enrolled, finished (only with `db:seed`) |
+
+The seed also adds two example submissions from the demo student in EE 101: **Ohm's Law Problem Set** (already graded, 9/10) and **Kirchhoff's Laws Lab Report** (waiting for a grade).
 
 ## Submission rules
 
@@ -230,7 +238,7 @@ The seed also adds two example submissions from the demo student in CS 101: **He
 - **Missing:** past the due date and nothing submitted.
 - **Coming up:** due in the next **7 days** and not submitted yet, soonest first. Submitted work disappears from the list.
 - The server decides what's in each list using the **database's clock**, so a student's wrong computer time can't change it.
-- The seed includes one missing assignment (**HTML Basics Quiz**, WEB 201) so you can see it.
+- The seed includes one missing assignment (**Boolean Algebra Quiz**, CPE 201) so you can see it.
 
 ## Admin rules
 
