@@ -66,7 +66,7 @@ Mini Canvas/
     ├── index.html
     ├── package.json
     ├── vite.config.js
-    ├── public/          Static files (logo.svg)
+    ├── public/          Static files (logo.png)
     └── src/
         ├── main.jsx     App starting point
         ├── App.jsx      Routes: which URL shows which page
@@ -84,7 +84,7 @@ Mini Canvas/
 - **Layout:** a sidebar on desktop that becomes a slide-out menu (☰) on screens narrower than 900px.
 - **Icons** come from [lucide-react](https://lucide.dev). The **Inter** font is bundled with the app (no outside requests).
 - **Placeholders:** features that don't exist yet (announcements, study activity, schedule, search...) appear as **"Coming soon"** and never show made-up numbers.
-- The logo and illustrations are our own simple SVG drawings.
+- The logo is a dino mascot (`client/public/logo.png`, 256×256, also used as the browser tab icon). On blue backgrounds it sits on a white tile. The welcome illustration is our own simple SVG drawing.
 
 ## Running the app
 

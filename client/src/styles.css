@@ -125,8 +125,19 @@ a:hover {
   letter-spacing: -0.01em;
 }
 
+.logo img {
+  border-radius: 10px;
+  background: #fff;
+}
+
 .logo-light {
   color: #fff;
+}
+
+/* On blue, give the mascot a white rounded tile so its blue lines don't disappear */
+.logo-light img {
+  padding: 3px;
+  border-radius: 12px;
 }
 
 /* =========================================================
