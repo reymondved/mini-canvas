@@ -56,6 +56,10 @@ export default function DashboardPage() {
             <Illustration />
           </section>
 
+          {/* First thing to read: the newest 5 UNREAD from site-wide + my courses
+              ("Show read" brings the rest back). Instructors post from each course page. */}
+          <AnnouncementsPanel loadUrl="/api/announcements" limit={5} showCourse unreadOnly />
+
           {isStudent && (
             <StudyActivity url="/api/activity" note="Your instructors can see your activity in their courses." />
           )}
@@ -85,10 +89,6 @@ export default function DashboardPage() {
               </ul>
             )}
           </section>
-
-          {/* Newest 5 UNREAD from site-wide + my courses; "Show read" brings the rest back.
-              Instructors post from each course page. */}
-          <AnnouncementsPanel loadUrl="/api/announcements" limit={5} showCourse unreadOnly />
         </div>
 
         <aside className="dashboard-side" aria-label="Schedule and tasks">
