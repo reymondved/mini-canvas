@@ -27,12 +27,12 @@ afterAll(stopTestServer);
 const gradeUrl = `/api/submissions/${IDS.submissions.kirchhoffUngraded}/grade`;
 
 describe('who may grade', () => {
-  test('a student CANNOT grade (instructors only) â†’ 403', async () => {
+  test('a student CANNOT grade (instructors only) → 403', async () => {
     const res = await request(gradeUrl, { method: 'PUT', cookie: student, json: { score: 20 } });
     expect(res.status).toBe(403);
   });
 
-  test("an instructor CANNOT grade another instructor's course â†’ 404", async () => {
+  test("an instructor CANNOT grade another instructor's course → 404", async () => {
     const res = await request(gradeUrl, { method: 'PUT', cookie: instructor2, json: { score: 20 } });
     expect(res.status).toBe(404);
   });

@@ -26,20 +26,20 @@ afterAll(stopTestServer);
 const titles = (list) => list.map((a) => a.title);
 
 // What the demo student has (due dates are relative to when the seed ran):
-//   Ohm's Law Problem Set      -3 days  submitted + graded   â†’ neither list
-//   Boolean Algebra Quiz  -1 day   not submitted        â†’ MISSING
-//   Fourier Series Problem Set   +2 days  not submitted        â†’ upcoming
-//   Kirchhoff's Laws Lab Report    +4 days  submitted            â†’ neither list
-//   Logic Gates Worksheet +6 days  not submitted        â†’ upcoming
-//   Convolution Lab       +9 days  not submitted        â†’ too far away
-//   First-Order ODE Worksheet   +5 days  MATH 120, not enrolled â†’ never
+//   Ohm's Law Problem Set        -3 days  submitted + graded       → neither list
+//   Boolean Algebra Quiz         -1 day   not submitted            → MISSING
+//   Fourier Series Problem Set   +2 days  not submitted            → upcoming
+//   Kirchhoff's Laws Lab Report  +4 days  submitted                → neither list
+//   Logic Gates Worksheet        +6 days  not submitted            → upcoming
+//   Convolution Lab              +9 days  not submitted            → too far away
+//   First-Order ODE Worksheet    +5 days  MATH 120, not enrolled   → never
 
 describe('who may see the upcoming list', () => {
   test.each([
     ['not logged in', () => undefined, 401],
     ['an instructor', () => instructor, 403],
     ['an admin', () => admin, 403],
-  ])('%s â†’ blocked', async (_label, who, expected) => {
+  ])('%s → blocked', async (_label, who, expected) => {
     expect((await request('/api/upcoming', { cookie: who() })).status).toBe(expected);
   });
 });
