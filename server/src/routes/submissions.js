@@ -19,7 +19,8 @@ router.get('/:id/file', requireLogin, async (req, res) => {
      FROM submissions s
      JOIN assignments a ON a.id = s.assignment_id
      JOIN courses c ON c.id = a.course_id
-     WHERE s.id = $1 AND (s.student_id = $2 OR c.instructor_id = $2)`,
+     WHERE s.id = $1 AND (s.student_id = $2 OR c.instructor_id = $2)
+       AND s.stored_name IS NOT NULL`, // text/link-only submissions have no file
     [req.params.id, req.user.id]
   );
   const file = result.rows[0];

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { fromLocalInputValue, toLocalInputValue } from '../format.js';
+import { SUBMISSION_TYPE_LABELS } from './SubmissionContent.jsx';
 
 const MAX_POINTS = 1000; // must match the server
 
@@ -11,7 +12,13 @@ export default function AssignmentForm({ initial, submitLabel, onSave, onCancel 
   const [description, setDescription] = useState(initial?.description ?? '');
   const [dueAt, setDueAt] = useState(initial ? toLocalInputValue(initial.due_at) : '');
   const [points, setPoints] = useState(initial?.points ?? '');
+  const [allowedTypes, setAllowedTypes] = useState(initial?.allowed_types ?? ['file']);
   const [error, setError] = useState('');
+
+  // Tick or untick one type, e.g. "text".
+  function toggleType(type) {
+    setAllowedTypes((current) => (current.includes(type) ? current.filter((t) => t !== type) : [...current, type]));
+  }
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(event) {
@@ -23,10 +30,11 @@ export default function AssignmentForm({ initial, submitLabel, onSave, onCancel 
     if (points === '' || !Number.isInteger(pointsNumber) || pointsNumber < 1 || pointsNumber > MAX_POINTS) {
       return setError(`Points must be a whole number from 1 to ${MAX_POINTS}.`);
     }
+    if (allowedTypes.length === 0) return setError('Choose at least one way for students to submit.');
 
     setSaving(true);
     try {
-      await onSave({ title, description, dueAt: fromLocalInputValue(dueAt), points: pointsNumber });
+      await onSave({ title, description, dueAt: fromLocalInputValue(dueAt), points: pointsNumber, allowedTypes });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -73,6 +81,15 @@ export default function AssignmentForm({ initial, submitLabel, onSave, onCancel 
           />
         </div>
       </div>
+      <fieldset className="choice-group">
+        <legend>Students can submit</legend>
+        {Object.entries(SUBMISSION_TYPE_LABELS).map(([type, label]) => (
+          <label key={type} className="choice">
+            <input type="checkbox" checked={allowedTypes.includes(type)} onChange={() => toggleType(type)} />
+            {label}
+          </label>
+        ))}
+      </fieldset>
       {error && <p className="alert-error" role="alert">{error}</p>}
       <div className="form-actions">
         <button type="submit" className="btn btn-primary" disabled={saving}>

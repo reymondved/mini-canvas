@@ -37,6 +37,7 @@
 - [x] **Extra** – Courses page and course home tabs: About (with syllabus), Announcements, Assignments, Modules, Grades (with an instructor gradebook), People
 - [x] **Extra** – Study activity: a 12-week submissions heatmap and a Requirements summary (on time / late / missing)
 - [x] **Extra** – Search in the top bar
+- [x] **Extra** – Submission types: file upload, text entry and website link (chosen per assignment, can be combined)
 - [ ] **Later** – Modules, class schedule, resources, notifications, messages (shown as "Coming soon" for now)
 
 ## Search
@@ -212,11 +213,15 @@ The demo data is **engineering-themed**:
 | **MATH 120** Differential Equations | instructor2 | **not** enrolled (to test that users can only open their own courses) |
 | **ENGR 100** Engineering Drawing (last term) | instructor | enrolled, finished (only with `db:seed`) |
 
-The seed also adds two example submissions from the demo student in EE 101: **Ohm's Law Problem Set** (already graded, 9/10) and **Kirchhoff's Laws Lab Report** (waiting for a grade).
+The seed also adds two example submissions from the demo student in EE 101: **Ohm's Law Problem Set** (already graded, 9/10) and **Kirchhoff's Laws Lab Report** (a file plus a link, waiting for a grade).
 
 ## Submission rules
 
-- Students upload one file per assignment. They can replace it any time **until it's graded**; after that it's locked.
+- Each assignment accepts one or more **submission types**, chosen by the instructor: **File upload**, **Text entry** and **Website link**. A student can combine them (for example a PDF lab report *plus* a link to their code), but needs at least one.
+- Assignments made before this feature accept **File upload** only.
+- Students can change their submission any time **until it's graded**; after that it's locked. Sending no new file keeps the current one; they can also tick **Remove my current file**.
+- Text entries are up to 20,000 characters and are shown as plain text (HTML in them is never run).
+- Links must start with **http://** or **https://**. Other kinds such as `javascript:` or `data:` are refused because they can run code when clicked. Links open in a new tab.
 - Late submissions are allowed and marked **Late**.
 - Instructors grade on each assignment's page: a whole-number score from 0 to the assignment's points, plus optional feedback. Grades can be updated.
 - The Grades page totals only count graded assignments.
@@ -274,8 +279,8 @@ The seed also adds two example submissions from the demo student in EE 101: **Oh
 | POST | `/api/courses/:id/assignments` | The course's **instructor** | Create `{ title, description, dueAt, points }` |
 | GET | `/api/assignments/:id` | Enrolled student or the course's instructor | Assignment + my submission (student) or all submissions (instructor) |
 | PUT | `/api/assignments/:id` | The course's **instructor** | Edit `{ title, description, dueAt, points }` |
-| PUT | `/api/assignments/:id/submission` | Enrolled **student** | Upload or replace my file (form field `file`) |
-| GET | `/api/submissions/:id/file` | That student or the course's instructor | Download the submitted file |
+| PUT | `/api/assignments/:id/submission` | Enrolled **student** | Submit or change my work: a form with any of `file`, `text`, `url`, and `removeFile=true` |
+| GET | `/api/submissions/:id/file` | That student or the course's instructor | Download the submitted file (404 if the submission has no file) |
 | PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
 | GET | `/api/grades` | **Student** | All my assignments and scores, by course |
 | GET | `/api/upcoming` | **Student** | `{ days, missing, upcoming }`: my unsubmitted work |

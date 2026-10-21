@@ -38,7 +38,7 @@ export async function findTaughtCourse(courseId, userId) {
 // Returns the assignment (with its course) if this user may open its course, otherwise undefined.
 export async function findAccessibleAssignment(assignmentId, userId) {
   const result = await pool.query(
-    `SELECT a.id, a.course_id, a.title, a.description, a.due_at, a.points,
+    `SELECT a.id, a.course_id, a.title, a.description, a.due_at, a.points, a.allowed_types,
             c.code AS course_code, c.title AS course_title
      FROM assignments a
      JOIN courses c ON c.id = a.course_id

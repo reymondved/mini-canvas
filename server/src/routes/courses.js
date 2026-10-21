@@ -83,9 +83,9 @@ router.post('/:id/assignments', requireLogin, requireRole('instructor'), require
     return res.status(400).json({ error });
   }
   const result = await pool.query(
-    `INSERT INTO assignments (course_id, title, description, due_at, points)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, course_id, title, description, due_at, points`,
+    `INSERT INTO assignments (course_id, title, description, due_at, points, allowed_types)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, course_id, title, description, due_at, points, allowed_types`,
     [course.id, ...values]
   );
   res.status(201).json({ assignment: result.rows[0] });

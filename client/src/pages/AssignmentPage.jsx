@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { formatDate, formatFileSize, isLate } from '../format.js';
+import { formatDate, isLate } from '../format.js';
 import { api } from '../api.js';
 import AssignmentForm from '../components/AssignmentForm.jsx';
+import SubmissionContent, { describeTypes } from '../components/SubmissionContent.jsx';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // must match the server's limit
+// These must match the server's limits
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_TEXT_LENGTH = 20000;
+const MAX_URL_LENGTH = 2000;
 const ACCEPTED_FILES = '.pdf,.docx,.txt,.png,.jpg,.jpeg,.zip';
 
 export default function AssignmentPage() {
@@ -71,7 +75,8 @@ export default function AssignmentPage() {
             )}
           </div>
           <p className="muted">
-            Due {formatDate(assignment.due_at)} · {assignment.points} pts
+            Due {formatDate(assignment.due_at)} · {assignment.points} pts · Accepts:{' '}
+            {describeTypes(assignment.allowed_types)}
           </p>
           <p>{assignment.description}</p>
         </header>
@@ -90,34 +95,45 @@ export default function AssignmentPage() {
   );
 }
 
-// ---------- Student: see my submission, upload or replace it ----------
+// ---------- Student: see my submission, hand it in or change it ----------
 
 function StudentSubmission({ assignment, submission, onSubmitted }) {
+  const allows = (type) => assignment.allowed_types.includes(type);
   const [file, setFile] = useState(null);
+  const [removeFile, setRemoveFile] = useState(false);
+  // Text and link start with what was handed in before, so a resubmit keeps them unless changed.
+  const [text, setText] = useState(submission?.text_body ?? '');
+  const [url, setUrl] = useState(submission?.url ?? '');
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const graded = submission && submission.score !== null;
+  const hasFile = Boolean(submission?.file_name);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError('');
-    if (!file) return setError('Please choose a file.');
-    if (file.size > MAX_FILE_SIZE) return setError('File is too large (max 5 MB).');
+    const keepsFile = hasFile && !removeFile;
+    if (!file && !keepsFile && !text.trim() && !url.trim()) {
+      return setError('Add a file, a text entry or a link before submitting.');
+    }
+    if (file && file.size > MAX_FILE_SIZE) return setError('File is too large (max 5 MB).');
+    if (url.trim() && !/^https?:\/\//i.test(url.trim())) {
+      return setError('Links must start with http:// or https://');
+    }
 
-    // FormData is how browsers send files: like a form with a file attached.
+    // FormData is how browsers send files: like a form with a file (and text fields) attached.
     const formData = new FormData();
-    formData.append('file', file);
+    if (file) formData.append('file', file);
+    if (removeFile) formData.append('removeFile', 'true');
+    if (allows('text')) formData.append('text', text);
+    if (allows('url')) formData.append('url', url);
 
     setUploading(true);
     try {
-      const response = await fetch(`/api/assignments/${assignment.id}/submission`, {
-        method: 'PUT',
-        body: formData, // no Content-Type header: the browser sets it for files
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error);
+      const body = await api(`/api/assignments/${assignment.id}/submission`, { method: 'PUT', form: formData });
       onSubmitted(body.submission);
       setFile(null);
+      setRemoveFile(false);
       event.target.reset(); // clear the file picker
     } catch (err) {
       setError(err.message || 'Upload failed.');
@@ -132,10 +148,7 @@ function StudentSubmission({ assignment, submission, onSubmitted }) {
 
       {submission ? (
         <div className="submission">
-          <p>
-            <a href={`/api/submissions/${submission.id}/file`}>{submission.file_name}</a>{' '}
-            <span className="muted">({formatFileSize(submission.file_size)})</span>
-          </p>
+          <SubmissionContent submission={submission} />
           <p className="muted">
             Submitted {formatDate(submission.submitted_at)}{' '}
             {isLate(submission.submitted_at, assignment.due_at) && <span className="tag tag-late">Late</span>}
@@ -155,19 +168,53 @@ function StudentSubmission({ assignment, submission, onSubmitted }) {
         <p className="muted">This assignment has been graded, so it can't be changed.</p>
       ) : (
         <form onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="file">{submission ? 'Replace your file' : 'Upload your file'}</label>
-            <input
-              id="file"
-              type="file"
-              accept={ACCEPTED_FILES}
-              onChange={(e) => setFile(e.target.files[0] ?? null)}
-            />
-            <p className="muted small">PDF, Word (.docx), text, PNG, JPG or ZIP · max 5 MB</p>
-          </div>
+          {allows('file') && (
+            <div className="field">
+              <label htmlFor="file">{hasFile ? 'Replace your file (optional)' : 'Upload a file'}</label>
+              <input
+                id="file"
+                type="file"
+                accept={ACCEPTED_FILES}
+                onChange={(e) => setFile(e.target.files[0] ?? null)}
+              />
+              <p className="muted small">PDF, Word (.docx), text, PNG, JPG or ZIP · max 5 MB</p>
+              {hasFile && !file && (
+                <label className="choice">
+                  <input type="checkbox" checked={removeFile} onChange={(e) => setRemoveFile(e.target.checked)} />
+                  Remove my current file ({submission.file_name})
+                </label>
+              )}
+            </div>
+          )}
+          {allows('text') && (
+            <div className="field">
+              <label htmlFor="submission-text">Text entry</label>
+              <textarea
+                id="submission-text"
+                rows="6"
+                maxLength={MAX_TEXT_LENGTH}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+            </div>
+          )}
+          {allows('url') && (
+            <div className="field">
+              <label htmlFor="submission-url">Website link</label>
+              <input
+                id="submission-url"
+                type="url"
+                placeholder="https://"
+                maxLength={MAX_URL_LENGTH}
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+              <p className="muted small">For example a link to your code, a video or a shared document.</p>
+            </div>
+          )}
           {error && <p className="alert-error" role="alert">{error}</p>}
           <button type="submit" className="btn btn-primary" disabled={uploading}>
-            {uploading ? 'Uploading…' : 'Submit'}
+            {uploading ? 'Submitting…' : submission ? 'Update submission' : 'Submit'}
           </button>
         </form>
       )}
@@ -188,10 +235,7 @@ function InstructorGrading({ assignment, submissions }) {
             <h3>{s.student_name}</h3>
             {s.id ? (
               <>
-                <p>
-                  <a href={`/api/submissions/${s.id}/file`}>{s.file_name}</a>{' '}
-                  <span className="muted">({formatFileSize(s.file_size)})</span>
-                </p>
+                <SubmissionContent submission={s} />
                 <p className="muted">
                   Submitted {formatDate(s.submitted_at)}{' '}
                   {isLate(s.submitted_at, assignment.due_at) && <span className="tag tag-late">Late</span>}

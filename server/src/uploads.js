@@ -79,6 +79,10 @@ function withClearErrors(multerStep, wrongFieldMessage) {
 // Submissions: exactly one file in the form field "file".
 export const handleUpload = withClearErrors(makeUploader(1).single('file'), 'Upload one file in the "file" field.');
 
+// Forms with text fields but NO files allowed (e.g. a text-only assignment).
+// multer().none() reads the text fields and rejects any file before it's saved.
+export const handleTextFieldsOnly = withClearErrors(multer().none(), 'This assignment doesn’t accept file uploads.');
+
 // Announcements: up to 3 files in the form field "files" (or none). Text fields arrive in req.body.
 // Requests that aren't multipart (plain JSON) pass straight through.
 export const handleAnnouncementFiles = withClearErrors(
