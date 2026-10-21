@@ -36,7 +36,15 @@
 - [x] **Extra** – Announcement replies, read/unread per person, and file attachments
 - [x] **Extra** – Courses page and course home tabs: About (with syllabus), Announcements, Assignments, Modules, Grades (with an instructor gradebook), People
 - [x] **Extra** – Study activity: a 12-week submissions heatmap and a Requirements summary (on time / late / missing)
-- [ ] **Later** – Modules, search, class schedule, resources, notifications, messages (shown as "Coming soon" for now)
+- [x] **Extra** – Search in the top bar
+- [ ] **Later** – Modules, class schedule, resources, notifications, messages (shown as "Coming soon" for now)
+
+## Search
+
+- The top bar's search box shows results **while you type** (after a 0.3 s pause, so typing doesn't send a request per key), grouped by type, with the match in bold. ↑ ↓ move, **Enter** opens, **Esc** closes.
+- **Students and instructors** find their own courses, those courses' assignments, and the announcements they can see (titles **and** text). **Admins** find users and courses.
+- Search uses the **same access rules** as the rest of the app, so it never shows anything you couldn't open.
+- `%` and `_` (wildcards in SQL `LIKE`) are escaped, so they're searched as plain characters.
 
 ## Study activity
 
@@ -271,6 +279,7 @@ The seed also adds two example submissions from the demo student in EE 101: **Oh
 | PUT | `/api/submissions/:id/grade` | The course's **instructor** | Save `{ score, feedback }` |
 | GET | `/api/grades` | **Student** | All my assignments and scores, by course |
 | GET | `/api/upcoming` | **Student** | `{ days, missing, upcoming }`: my unsubmitted work |
+| GET | `/api/search?q=ohm` | Logged in | Up to 5 each: `courses`, `assignments`, `announcements` (admins: `users`, `courses`) |
 | GET | `/api/activity?tz=Asia/Manila` | **Student** | My 84-day submission counts + requirements |
 | GET | `/api/courses/:id/students/:userId/activity?tz=...` | The course's **instructor** | That student's activity in this course only |
 | GET | `/api/announcements` | Logged in | Newest 20: site-wide + my courses |
