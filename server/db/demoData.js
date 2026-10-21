@@ -48,6 +48,7 @@ const demoCourses = [
         description: 'Solve 10 problems on voltage, current, resistance and power in series and parallel circuits.',
         dueInDays: -3,
         points: 10,
+        allowedTypes: ['file', 'text'],
         // Example: already submitted by the demo student AND graded
         submission: {
           fileName: 'ohms-law-problem-set.txt',
@@ -61,9 +62,11 @@ const demoCourses = [
         description: 'Measure the currents and voltages in the lab circuit and verify KVL and KCL.',
         dueInDays: 4,
         points: 20,
+        allowedTypes: ['file', 'url'],
         // Example: submitted, waiting for the instructor to grade it
         submission: {
           fileName: 'kirchhoff-lab-report.txt',
+          url: 'https://example.com/demo-student/kirchhoff-lab-data',
           content: 'KCL at node A: I1 = I2 + I3 -> 15 mA = 10 mA + 5 mA (verified)\nKVL around loop 1: 12 V - 7 V - 5 V = 0 (verified)\n',
         },
       },
@@ -72,6 +75,7 @@ const demoCourses = [
         description: 'Short quiz: find the Thevenin voltage and resistance of three circuits.',
         dueInDays: 11,
         points: 30,
+        allowedTypes: ['file', 'text'],
       },
     ],
   },
@@ -87,12 +91,14 @@ const demoCourses = [
         description: 'Draw the truth tables and symbols of AND, OR, NOT, NAND, NOR and XOR gates.',
         dueInDays: 6,
         points: 50,
+        allowedTypes: ['file'],
       },
       {
         title: 'Karnaugh Map Exercise',
         description: 'Simplify five Boolean functions using K-maps and draw the simplified circuits.',
         dueInDays: 14,
         points: 50,
+        allowedTypes: ['file', 'text'],
       },
       // Example: past due and NOT submitted, so it shows as "Missing" on the dashboard
       {
@@ -100,6 +106,7 @@ const demoCourses = [
         description: "Short quiz on Boolean laws and De Morgan's theorems.",
         dueInDays: -1,
         points: 15,
+        allowedTypes: ['text'],
       },
     ],
   },
@@ -115,12 +122,14 @@ const demoCourses = [
         description: 'Find the Fourier series of a square wave and a sawtooth wave.',
         dueInDays: 2,
         points: 40,
+        allowedTypes: ['file', 'text'],
       },
       {
         title: 'Convolution Lab',
         description: 'Use MATLAB or Python to convolve two signals and compare with your hand calculation.',
         dueInDays: 9,
         points: 60,
+        allowedTypes: ['file', 'url'],
       },
     ],
   },
@@ -136,6 +145,7 @@ const demoCourses = [
         description: 'Solve separable and linear first-order equations, including an RC circuit example.',
         dueInDays: 5,
         points: 25,
+        allowedTypes: ['file'],
       },
     ],
   },
@@ -234,10 +244,10 @@ export async function seedDemoData({ log = console.log, withHistory = true } = {
 
     for (const a of course.assignments) {
       const assignmentResult = await pool.query(
-        `INSERT INTO assignments (course_id, title, description, due_at, points)
-         VALUES ($1, $2, $3, now() + make_interval(days => $4), $5)
+        `INSERT INTO assignments (course_id, title, description, due_at, points, allowed_types)
+         VALUES ($1, $2, $3, now() + make_interval(days => $4), $5, $6)
          RETURNING id`,
-        [courseId, a.title, a.description, a.dueInDays, a.points]
+        [courseId, a.title, a.description, a.dueInDays, a.points, a.allowedTypes]
       );
 
       if (a.submission) {
@@ -246,14 +256,15 @@ export async function seedDemoData({ log = console.log, withHistory = true } = {
         await writeFile(path.join(UPLOAD_DIR, storedName), a.submission.content);
         await pool.query(
           `INSERT INTO submissions
-             (assignment_id, student_id, file_name, stored_name, file_type, file_size, score, feedback, graded_at)
-           VALUES ($1, $2, $3, $4, 'text/plain', $5, $6, $7, CASE WHEN $6::int IS NULL THEN NULL ELSE now() END)`,
+             (assignment_id, student_id, file_name, stored_name, file_type, file_size, url, score, feedback, graded_at)
+           VALUES ($1, $2, $3, $4, 'text/plain', $5, $6, $7, $8, CASE WHEN $7::int IS NULL THEN NULL ELSE now() END)`,
           [
             assignmentResult.rows[0].id,
             userIds['student@demo.test'],
             a.submission.fileName,
             storedName,
             Buffer.byteLength(a.submission.content),
+            a.submission.url ?? null,
             a.submission.score ?? null,
             a.submission.feedback ?? null,
           ]

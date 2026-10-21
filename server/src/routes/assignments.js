@@ -4,12 +4,13 @@ import { requireLogin } from '../middleware/requireLogin.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { findAccessibleAssignment, findTaughtCourse, isValidId } from '../access.js';
 import { checkAssignmentInput } from '../assignmentInput.js';
-import { cleanFileName, deleteStoredFile, handleUpload } from '../uploads.js';
+import { cleanFileName, deleteStoredFile, handleTextFieldsOnly, handleUpload } from '../uploads.js';
 
 const router = Router();
 
 // The details of a submission that are safe to send to the browser (no stored_name).
-const SUBMISSION_FIELDS = 's.id, s.file_name, s.file_size, s.submitted_at, s.score, s.feedback, s.graded_at';
+const SUBMISSION_FIELDS =
+  's.id, s.file_name, s.file_size, s.text_body, s.url, s.submitted_at, s.score, s.feedback, s.graded_at';
 
 // GET /api/assignments/:id
 // Student → the assignment + their own submission. Instructor → the assignment + every enrolled student's submission.
@@ -63,12 +64,26 @@ router.put('/:id', requireLogin, requireRole('instructor'), async (req, res) => 
     });
   }
 
-  await pool.query('UPDATE assignments SET title = $1, description = $2, due_at = $3, points = $4 WHERE id = $5', [
-    ...values,
-    assignment.id,
-  ]);
+  await pool.query(
+    'UPDATE assignments SET title = $1, description = $2, due_at = $3, points = $4, allowed_types = $5 WHERE id = $6',
+    [...values, assignment.id]
+  );
   res.json({ assignment: await findAccessibleAssignment(assignment.id, req.user.id) });
 });
+
+const MAX_TEXT_LENGTH = 20000;
+const MAX_URL_LENGTH = 2000;
+
+// Only real web links. "javascript:alert(1)" or "data:..." links RUN CODE when clicked,
+// so anything that isn't http:// or https:// is refused.
+function isSafeWebLink(text) {
+  try {
+    const url = new URL(text);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname !== '';
+  } catch {
+    return false; // not a valid URL at all
+  }
+}
 
 // Runs BEFORE the upload, so files from people who aren't allowed never reach the disk.
 async function checkCanSubmit(req, res, next) {
@@ -77,40 +92,98 @@ async function checkCanSubmit(req, res, next) {
     return res.status(404).json({ error: 'Assignment not found.' });
   }
   const existing = await pool.query(
-    'SELECT stored_name, score FROM submissions WHERE assignment_id = $1 AND student_id = $2',
+    `SELECT file_name, stored_name, file_type, file_size, score
+     FROM submissions WHERE assignment_id = $1 AND student_id = $2`,
     [assignment.id, req.user.id]
   );
   if (existing.rows[0] && existing.rows[0].score !== null) {
     return res.status(409).json({ error: 'This submission has been graded and can no longer be changed.' });
   }
   req.assignment = assignment;
-  req.previousStoredName = existing.rows[0]?.stored_name;
+  req.previous = existing.rows[0]; // undefined if this is the first submission
   next();
 }
 
-// PUT /api/assignments/:id/submission — upload (or replace) my file. Students only.
-// Each step must pass before the next one runs: logged in → student → allowed → file saved → database.
-router.put('/:id/submission', requireLogin, requireRole('student'), checkCanSubmit, handleUpload, async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Please choose a file to upload.' });
-  }
+// Accept a file only if this assignment allows files; otherwise any file is refused before it's saved.
+function uploadIfAllowed(req, res, next) {
+  const step = req.assignment.allowed_types.includes('file') ? handleUpload : handleTextFieldsOnly;
+  step(req, res, next);
+}
 
-  // "Upsert": insert a new submission, or replace the existing one (late submissions are allowed).
-  const result = await pool.query(
-    `INSERT INTO submissions (assignment_id, student_id, file_name, stored_name, file_type, file_size)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (assignment_id, student_id) DO UPDATE
-       SET file_name = EXCLUDED.file_name, stored_name = EXCLUDED.stored_name,
-           file_type = EXCLUDED.file_type, file_size = EXCLUDED.file_size, submitted_at = now()
-     RETURNING id, file_name, file_size, submitted_at, score, feedback, graded_at`,
-    [req.assignment.id, req.user.id, cleanFileName(req.file.originalname), req.file.filename, req.file.mimetype, req.file.size]
-  );
+// PUT /api/assignments/:id/submission — submit (or replace) my work. Students only.
+// A multipart form with any of: "file", "text", "url", and "removeFile" = "true" to drop the current file.
+// Each step must pass before the next one runs: logged in → student → allowed → upload → checks → database.
+router.put(
+  '/:id/submission',
+  requireLogin,
+  requireRole('student'),
+  checkCanSubmit,
+  uploadIfAllowed,
+  async (req, res) => {
+    const allowed = req.assignment.allowed_types;
+    const fields = req.body ?? {};
 
-  // The old file was replaced, so remove it from disk.
-  if (req.previousStoredName) {
-    await deleteStoredFile(req.previousStoredName);
+    // If we say no after the upload step, the new file must not stay on disk.
+    async function refuse(message) {
+      if (req.file) await deleteStoredFile(req.file.filename);
+      return res.status(400).json({ error: message });
+    }
+
+    // Text entry: empty means "no text". Line breaks from forms become plain "\n".
+    const text = typeof fields.text === 'string' && fields.text.trim() ? fields.text.replace(/\r\n/g, '\n').trim() : null;
+    if (text && !allowed.includes('text')) return refuse('This assignment doesn’t accept text entries.');
+    if (text && text.length > MAX_TEXT_LENGTH) return refuse(`Text entries can be at most ${MAX_TEXT_LENGTH} characters.`);
+
+    // Website link: empty means "no link".
+    const url = typeof fields.url === 'string' && fields.url.trim() ? fields.url.trim() : null;
+    if (url && !allowed.includes('url')) return refuse('This assignment doesn’t accept website links.');
+    if (url && (url.length > MAX_URL_LENGTH || !isSafeWebLink(url))) {
+      return refuse('Links must be a full web address starting with http:// or https://.');
+    }
+
+    // The file after this save: the new upload, or the one already there (unless it's being removed).
+    const keptFile = fields.removeFile === 'true' ? null : req.previous?.stored_name ? req.previous : null;
+    const file = req.file
+      ? {
+          file_name: cleanFileName(req.file.originalname),
+          stored_name: req.file.filename,
+          file_type: req.file.mimetype,
+          file_size: req.file.size,
+        }
+      : keptFile;
+
+    if (!file && !text && !url) {
+      return refuse('Add a file, a text entry or a link.');
+    }
+
+    // "Upsert": insert a new submission, or replace the existing one (late submissions are allowed).
+    const result = await pool.query(
+      `INSERT INTO submissions (assignment_id, student_id, file_name, stored_name, file_type, file_size, text_body, url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (assignment_id, student_id) DO UPDATE
+         SET file_name = EXCLUDED.file_name, stored_name = EXCLUDED.stored_name,
+             file_type = EXCLUDED.file_type, file_size = EXCLUDED.file_size,
+             text_body = EXCLUDED.text_body, url = EXCLUDED.url, submitted_at = now()
+       RETURNING ${SUBMISSION_FIELDS.replaceAll('s.', '')}`,
+      [
+        req.assignment.id,
+        req.user.id,
+        file?.file_name ?? null,
+        file?.stored_name ?? null,
+        file?.file_type ?? null,
+        file?.file_size ?? null,
+        text,
+        url,
+      ]
+    );
+
+    // If the old file was replaced or removed, delete it from disk.
+    const oldStoredName = req.previous?.stored_name;
+    if (oldStoredName && oldStoredName !== file?.stored_name) {
+      await deleteStoredFile(oldStoredName);
+    }
+    res.json({ submission: result.rows[0] });
   }
-  res.json({ submission: result.rows[0] });
-});
+);
 
 export default router;

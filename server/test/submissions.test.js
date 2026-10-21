@@ -117,8 +117,9 @@ describe('rejected uploads never reach the disk', () => {
     expect(await countUploadedFiles()).toBe(before);
   });
 
-  test('rejects a request with no file', async () => {
-    const res = await request(submitUrl(IDS.assignments.logicGates), { method: 'PUT', cookie: student });
+  // (Fourier has no submission yet. Where a file is already there, "no new file" means "keep it".)
+  test('rejects a first submission with nothing in it', async () => {
+    const res = await request(submitUrl(IDS.assignments.fourier), { method: 'PUT', cookie: student });
     expect(res.status).toBe(400);
   });
 });

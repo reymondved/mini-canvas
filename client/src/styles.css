@@ -1289,6 +1289,50 @@ a:hover {
   margin: 0 0 0.35rem;
 }
 
+/* A student's text entry: keep their line breaks, and break very long words/links */
+.submission-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
+  margin: 0.35rem 0 0.75rem;
+}
+
+.submission-link {
+  overflow-wrap: anywhere;
+}
+
+/* A group of checkboxes, e.g. "Students can submit" */
+.choice-group {
+  border: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.choice-group legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  padding: 0;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 1.25rem 0.35rem 0;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.choice input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+}
+
 .grade-result {
   background: var(--primary-soft);
   border-radius: var(--radius-sm);
